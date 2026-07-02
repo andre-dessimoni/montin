@@ -1,3 +1,29 @@
+{# ---- ThemeOptions macros: logos + watermark (see montin.core.theme_options) ---- #}
+{% macro logo_group(items, extra_class="") %}
+{% for lg in items %}
+{% if lg.link %}
+<a class="deck-logo {{ extra_class }}" href="{{ lg.link | e }}" target="_blank" rel="noopener"{% if lg.height %} style="--logo-height: {{ lg.height }};"{% endif %}>{% if lg.img %}<img src="{{ lg.img }}" alt="logo">{% else %}{{ lg.text | e }}{% endif %}</a>
+{% else %}
+<span class="deck-logo {{ extra_class }}"{% if lg.height %} style="--logo-height: {{ lg.height }};"{% endif %}>{% if lg.img %}<img src="{{ lg.img }}" alt="logo">{% else %}{{ lg.text | e }}{% endif %}</span>
+{% endif %}
+{% endfor %}
+{% endmacro %}
+{% macro watermark(wm) %}
+{% if wm %}
+{% if wm.tiled %}
+<div class="slide-watermark wm-tiled" style="--wm-tile: url('{{ wm.img }}');"></div>
+{% elif wm.mode == 'image' %}
+<div class="slide-watermark wm-{{ wm.position }}"><img src="{{ wm.img }}" alt=""></div>
+{% else %}
+<div class="slide-watermark wm-text wm-{{ 'center' if wm.position == 'tiled' else wm.position }}">{{ wm.text | e }}</div>
+{% endif %}
+{% endif %}
+{% endmacro %}
+{% macro footer(item) %}
+{% if theme_options and theme_options.footer and item.slide.slide_type != 'title' %}
+<footer class="slide-footer footer-{{ theme_options.footer.align }}">{{ item.footer_text | e }}</footer>
+{% endif %}
+{% endmacro %}
 <!DOCTYPE html>
 <html lang="en" style="--deck-font-scale: {{ deck.fontsize_scale }};">
 <head>
@@ -38,7 +64,7 @@
 {% if deck.show_sidebar %}
 <!-- ===================== SIDEBAR ===================== -->
 <nav id="sidebar">
-  <div id="sidebar-header">{{ deck.title }}</div>
+  <div id="sidebar-header">{% if theme_options %}{{ logo_group(theme_options.logos.sidebar) }}{% endif %}{{ deck.title }}</div>
   {% if deck.sidebar_search %}
   <div id="sidebar-search-wrap">
     <input id="sidebar-search" type="text" placeholder="Filter slides…"
@@ -98,7 +124,9 @@
     data-index="{{ loop.index }}"
   >
     <div class="stage">
+    {% if theme_options %}{{ watermark(theme_options.watermark) }}{% endif %}
     <div class="slide-cover">
+      {% if theme_options %}{{ logo_group(theme_options.logos.cover, "deck-logo-cover") }}{% endif %}
       <h1 class="slide-cover-title">{{ slide.title }}</h1>
       {% if slide.subtitle %}
       <p class="slide-cover-subtitle">{{ slide.subtitle }}</p>
@@ -121,6 +149,7 @@
       </nav>
       {% endif %}
     </div>
+    {{ footer(item) }}
     </div>
   </section>
 
@@ -132,7 +161,9 @@
     data-index="{{ loop.index }}"
   >
     <div class="stage">
+    {% if theme_options %}{{ watermark(theme_options.watermark) }}{% endif %}
     <header class="slide-header">
+      {% if theme_options %}{{ logo_group(theme_options.logos.header, "deck-logo-header") }}{% endif %}
       <h1 class="slide-title">{{ slide.title }}</h1>
       {% if slide.subtitle %}
       <p class="slide-subtitle">{{ slide.subtitle }}</p>
@@ -149,6 +180,7 @@
       {% endfor %}
     </nav>
     {% endif %}
+    {{ footer(item) }}
     </div>
   </section>
 
@@ -164,8 +196,10 @@
     "
   >
     <div class="stage">
+    {% if theme_options %}{{ watermark(theme_options.watermark) }}{% endif %}
     <!-- Slide header -->
     <header class="slide-header">
+      {% if theme_options %}{{ logo_group(theme_options.logos.header, "deck-logo-header") }}{% endif %}
       <h1 class="slide-title">{{ slide.title }}</h1>
       {% if slide.subtitle %}
       <p class="slide-subtitle">{{ slide.subtitle }}</p>
@@ -188,6 +222,7 @@
     {% if slide.notes %}
     <aside class="slide-notes">{{ slide.notes }}</aside>
     {% endif %}
+    {{ footer(item) }}
     </div>
   </section>
   {% endif %}
@@ -198,6 +233,7 @@
 {% if deck.show_toolbar %}
 <!-- ===================== BOTTOM TOOLBAR ===================== -->
 <footer id="toolbar">
+  {% if theme_options %}{{ logo_group(theme_options.logos.toolbar) }}{% endif %}
   {% if deck.show_sidebar %}
   <button id="btn-sidebar" onclick="toggleSidebar()" title="Toggle sidebar (B)">&#9776;</button>
   {% endif %}
