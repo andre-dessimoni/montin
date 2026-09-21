@@ -55,6 +55,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Printing / PDF export**: The deck now prints (Ctrl+P / Save as PDF) with one
   slide per page and no sidebar or toolbar.
 
+### Fixed
+- `add_tabulator(selectable=…)` and `spreadsheet_mode=True` sent their range
+  selection and clipboard options to Tabulator as one-element arrays (stray
+  trailing commas), breaking them.
+
 ## [0.5.0] - 2026-06-22
 
 ### Added

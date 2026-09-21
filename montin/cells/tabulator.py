@@ -54,94 +54,9 @@ def _safe_json(obj: Any) -> str:
 class TabulatorCell(Cell):
     """Interactive table cell rendered via Tabulator.js.
 
-    Accepts the same data inputs as ``add_table`` — a ``dict`` of columns, a
-    ``list[list]`` (first row = headers), a pandas ``DataFrame``, a CSV/TSV
-    string, or a path to a CSV/TSV file. For multi-sheet tab navigation pass
-    ``sheets`` instead of ``data``. Requires ``Plugins.Tabulator()`` on the deck.
-
-    Args:
-        data: Tabular data for a single-sheet table. Accepts:
-
-            - ``dict[str, list]`` — keys = column headers, values = column data.
-            - ``list[list]`` — first sub-list is the header row.
-            - ``pandas.DataFrame``.
-            - A CSV/TSV string.
-            - A path to a CSV/TSV file.
-
-            Mutually exclusive with ``sheets``.
-        params: Internal cell placement metadata injected by ``@cell_method``.
-        sheets: Multi-sheet mode. A ``dict`` whose keys become tab titles and
-            whose values are each parsed as tabular data (same types as
-            ``data``). Column headers are included as the first row of each
-            sheet's grid (Excel convention). ``data`` must be ``None`` when
-            this is set. Sorting, filtering, pagination, and grouping options
-            are ignored in multi-sheet mode.
-        columns: Per-column Tabulator column definitions merged over the
-            auto-generated columns. Each dict is matched by ``"title"`` (or
-            ``"field"``) and merged in, so only changed keys need to be
-            specified. Useful keys: ``"formatter"`` (``"money"``, ``"star"``,
-            ``"progress"``, ``"tickCross"``), ``"editor"``,
-            ``"bottomCalc"`` / ``"topCalc"``, ``"frozen"``, ``"headerFilter"``,
-            ``"widthGrow"``.
-        options: Verbatim dict merged into the Tabulator constructor config,
-            overriding all named keyword options. Use for anything not exposed
-            by name — ``"movableRows"``, ``"history"``, ``"locale"``, nested
-            tables, etc.
-        layout: Column sizing strategy. One of ``"fitColumns"`` (default —
-            columns share available width), ``"fitData"``,
-            ``"fitDataFill"``, ``"fitDataStretch"``, or ``"fitDataTable"``.
-        responsive: If ``True``, columns that overflow collapse into an
-            expandable row instead of causing horizontal scroll.
-        pagination: Page size (rows per page). ``None`` renders all rows at
-            once.
-        selectable: ``True`` or a max-count integer to allow readers to select
-            rows by clicking.
-        group_by: Column title (or list of titles) to group rows under
-            collapsible section headers. Display titles are resolved to safe
-            field keys automatically.
-        header_filter: If ``True``, adds a text filter input to every column
-            header.
-        frozen_columns: Column titles to pin to the left edge while the rest
-            of the table scrolls horizontally.
-        frozen_rows: Number of rows to pin to the top.
-        movable_columns: If ``True`` (default), readers can drag column headers
-            to reorder them.
-        header_sort: ``True`` / ``False`` to explicitly enable or disable
-            sorting by clicking column headers. ``None`` keeps Tabulator's
-            default (sortable). Defaults to ``False`` in
-            ``spreadsheet_mode`` unless overridden here.
-        row_numbers: If ``True``, adds a frozen left column showing sequential
-            row numbers. Numbers are continuous across paginated pages (not
-            reset per page).
-        spreadsheet_mode: Enables spreadsheet-like behaviour: range cell
-            selection, clipboard copy/paste (Ctrl-C / Ctrl-V), and per-column
-            resize handles. In ``sheets`` mode also makes cells editable.
-        persistence: If ``True``, the reader's sort, filter, and column-order
-            tweaks are saved to ``localStorage`` and restored on reload. Off by
-            default — a stale saved layout can silently break a table after its
-            columns change. The persistence key includes a hash of the column
-            structure so changing columns automatically invalidates old state.
-        download: List of export formats to show as download buttons. Accepts
-            ``"csv"`` and / or ``"json"`` (xlsx requires SheetJS which is not
-            bundled). In multi-sheet mode, downloads the active sheet only.
-        height: Fixed height for the table container, e.g. ``"400px"`` or
-            ``400`` (interpreted as px). Setting a height enables virtual
-            rendering for very large tables.
-        index: For pandas DataFrames only — if ``True``, include the index as
-            the first column.
-        separator: CSV/TSV field separator for string or file inputs.
-            ``"auto"`` (default) detects a tab in the first line; otherwise
-            ``","`` or ``"\\t"``.
-        tabulator_config: Final-pass dict merged into the Tabulator constructor
-            after all other options, overriding even ``options``. Use for
-            options that conflict with Montin's own config keys.
-
-    Raises:
-        ValueError: If both ``data`` and ``sheets`` are supplied, if neither
-            is supplied, or if ``data`` is provided without being a recognised
-            type.
-        PluginNotDeclaredError: Raised by ``slide.add_tabulator`` if
-            ``Plugins.Tabulator()`` is not listed in the deck's plugins.
+    Do not instantiate directly — use :meth:`montin.core.slide.Slide.add_tabulator`,
+    which documents every option (this class takes the same keyword arguments).
+    Requires ``Plugins.Tabulator()`` on the deck.
     """
 
     def __init__(
@@ -153,7 +68,7 @@ class TabulatorCell(Cell):
         columns: list[dict] | None = None,
         options: dict | None = None,
         layout: str = "fitColumns",
-        responsive: bool = True,
+        responsive: bool = False,
         pagination: int | None = None,
         selectable: bool | int = False,
         group_by: str | list[str] | None = None,
@@ -291,27 +206,27 @@ class TabulatorCell(Cell):
             config["height"] = height
         if selectable:
             config["selectableRows"] = selectable
-            config["selectableRange"] = True,
-            config["selectableRangeColumns"] = True,
-            config["selectableRangeRows"] = True,
+            config["selectableRange"] = True
+            config["selectableRangeColumns"] = True
+            config["selectableRangeRows"] = True
         if header_sort is not None:
             config["headerSort"] = header_sort
         if spreadsheet_mode:
             if header_sort is None:
                 config["headerSort"] = False
-            config["selectableRange"] = 1,
-            config["selectableRangeColumns"] = True,
-            config["selectableRangeRows"] = True,
-            config["selectableRangeClearCells"] = True,
-            config["clipboard"] = True,
-            config["clipboardCopyStyled"] = False,
+            config["selectableRange"] = 1
+            config["selectableRangeColumns"] = True
+            config["selectableRangeRows"] = True
+            config["selectableRangeClearCells"] = True
+            config["clipboard"] = True
+            config["clipboardCopyStyled"] = False
             config["clipboardCopyConfig"] = {
                 "rowHeaders": False,
                 "columnHeaders": False,
-            },
-            config["clipboardCopyRowRange"] = "range",
-            config["clipboardPasteParser"] = "range",
-            config["clipboardPasteAction"] = "range",
+            }
+            config["clipboardCopyRowRange"] = "range"
+            config["clipboardPasteParser"] = "range"
+            config["clipboardPasteAction"] = "range"
             config["columnDefaults"] = {
                 "headerSort": False,
                 "resizable": "header",
