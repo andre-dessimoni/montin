@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import jinja2
+from functools import lru_cache
 from importlib.resources import files as _res_files
 
 from montin.exceptions import SecurityError
@@ -52,8 +53,14 @@ MAIN_JS_MODULES = [
 ]
 
 
+@lru_cache(maxsize=1)
 def _read_main_js() -> str:
-    """Concatenate the deck JS modules (montin/static/js) into one script."""
+    """Concatenate the deck JS modules (montin/static/js) into one script.
+
+    Cached: the modules are immutable package assets, and autosave re-renders
+    the deck on every change — re-reading 14 files from disk each time is
+    wasted IO. (Restart the process to pick up edits during development.)
+    """
     js_dir = _static_dir() / "js"
     parts: list[str] = []
     for name in MAIN_JS_MODULES:
@@ -236,14 +243,19 @@ class Assembler:
         """
         if not self.deck.security.block_external:
             return
-        scan = html
+        # Locate each trusted block's span instead of str.replace-ing it out —
+        # replace copies the whole (potentially huge) document once per block.
+        spans: list[tuple[int, int]] = []
         for block in trusted:
             if block:
-                scan = scan.replace(block, "")
+                start = html.find(block)
+                if start != -1:
+                    spans.append((start, start + len(block)))
         hits = sorted({
             m.group(1)
             for rgx in _RESOURCE_URL_RES
-            for m in rgx.finditer(scan)
+            for m in rgx.finditer(html)
+            if not any(s <= m.start() < e for s, e in spans)
         })
         if hits:
             raise SecurityError(

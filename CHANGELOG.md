@@ -68,6 +68,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   itself.
 - Passing only one of `col=` / `row=` to an `add_*` method now raises
   `CellPlacementError` instead of silently auto-placing the cell.
+- Faster autosave: the deck JavaScript and the built-in theme CSS are read from
+  disk once per process instead of on every render.
 
 ### Fixed
 - `add_tabulator(selectable=…)` and `spreadsheet_mode=True` sent their range
