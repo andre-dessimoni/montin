@@ -2,6 +2,8 @@
 integrity / XSS), resilient rendering (strict=False), dynamic plugin
 declaration, isolated defaults, and preview/write idempotency."""
 
+import pytest
+
 from montin import Deck
 
 
@@ -52,6 +54,44 @@ def test_add_text_plain_mode_escapes(tmp_path):
     html = deck.write(tmp_path / "out").read_text(encoding="utf-8")
     assert "<script>alert(1)</script>" not in html
     assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+
+
+# ---------------------------------------------------------------------------
+# Resilient rendering (strict=False)
+# ---------------------------------------------------------------------------
+
+class _BoomCell:
+    """Minimal Cell stand-in whose render always fails."""
+
+
+def _add_failing_cell(slide):
+    cell = slide.add_text("ok")
+
+    def boom(env):
+        raise RuntimeError("pathological figure")
+
+    cell.render = boom
+    return cell
+
+
+def test_strict_default_raises(tmp_path):
+    deck = Deck(title="X")
+    _add_failing_cell(deck.add_slide("S"))
+    with pytest.raises(RuntimeError, match="pathological figure"):
+        deck.write(tmp_path / "out")
+
+
+def test_strict_false_degrades_to_error_box(tmp_path):
+    deck = Deck(title="X")
+    s1 = deck.add_slide("Bad")
+    _add_failing_cell(s1)
+    s2 = deck.add_slide("Good")
+    s2.add_text("survivor")
+    with pytest.warns(UserWarning, match="failed to render"):
+        html = deck.write(tmp_path / "out", strict=False).read_text(encoding="utf-8")
+    assert "cell-error" in html
+    assert "pathological figure" in html
+    assert "survivor" in html          # the rest of the deck still rendered
 
 
 # ---------------------------------------------------------------------------

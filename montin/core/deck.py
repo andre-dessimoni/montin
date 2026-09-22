@@ -460,10 +460,19 @@ class Deck:
         )
 
 
-    def render(self):
+    def render(self, strict: bool = True):
+        """Render the deck to its final HTML string.
+
+        Args:
+            strict: When ``True`` (default) any cell that fails to render
+                raises and aborts the whole render. ``strict=False`` degrades a
+                failing cell to a visible error box (with the exception message)
+                and keeps every other slide — recommended for unattended batch
+                jobs where one pathological figure must not cost the report.
+        """
         from montin.core.assembler import Assembler
 
-        assembler = Assembler(self)
+        assembler = Assembler(self, strict=strict)
         return assembler._render()
 
     def render_css(self) -> str:
@@ -497,8 +506,18 @@ class Deck:
         self,
         filename:     str | Path | None = None,
         open_browser: bool = False,
+        strict:       bool = True,
     ) -> Path:
-        """Trigger the Assembler, write ``<filename>.html``, and return the Path."""
+        """Trigger the Assembler, write ``<filename>.html``, and return the Path.
+
+        Args:
+            filename: Output file. Defaults to ``autosave`` when set, else a
+                name derived from the deck title.
+            open_browser: Open the written file in the default browser.
+            strict: When ``True`` (default) a failing cell aborts the write.
+                ``strict=False`` renders it as a visible error box and keeps
+                the rest of the deck — see :meth:`render`.
+        """
         from montin.core.assembler import Assembler
 
         if (filename is None) and (self.autosave is not None):
@@ -507,7 +526,7 @@ class Deck:
             filename = self.title.replace(" ", "-")
 
         path = Path(filename).with_suffix(".html")
-        assembler = Assembler(self)
+        assembler = Assembler(self, strict=strict)
         assembler.write(path)
 
         if open_browser:

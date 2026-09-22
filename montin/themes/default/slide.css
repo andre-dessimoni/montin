@@ -133,6 +133,26 @@
   flex-shrink: 0;
 }
 
+/* ---- Error box for a cell that failed to render (write(strict=False)) ---- */
+.cell-error {
+  border: 1px dashed #ef4444;
+  background: color-mix(in srgb, #ef4444 6%, var(--color-surface));
+}
+
+.cell-error .cell-error-title {
+  color: #ef4444;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.cell-error .cell-error-detail {
+  font-family: var(--font-mono);
+  font-size: calc(0.72rem * var(--cell-font-scale, 1));
+  white-space: pre-wrap;
+  overflow: auto;
+  margin: 0;
+}
+
 /* ---- Botões de ação ---- */
 .cell-actions {
   position: absolute;

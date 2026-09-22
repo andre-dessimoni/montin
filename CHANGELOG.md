@@ -21,6 +21,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   look is preserved as **`midnight`**. New *Themes* guide documents the built-ins,
   the CSS-variable system, and how to reskin a deck with `custom_css` or a custom
   theme folder.
+- **Resilient rendering — `write(strict=False)` / `render(strict=False)`.** A
+  cell that fails to render degrades to a visible error box (with the exception
+  message) in its grid slot while every other slide is still written — for
+  unattended batch jobs where one pathological figure must not cost the whole
+  report. The default `strict=True` still raises.
 
 ### Changed
 - **The default theme now matches the documentation site** (a clean light look —

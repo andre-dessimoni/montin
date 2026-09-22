@@ -65,10 +65,14 @@ def _read_main_js() -> str:
 
 
 class Assembler:
-    def __init__(self, deck: "Deck") -> None:
+    def __init__(self, deck: "Deck", strict: bool = True) -> None:
         self.deck = deck
+        self.strict = strict
         self._env = self._build_jinja_env()
         self._output_path: Path | None = None   # set by write(); None during previews
+        # Cells whose media finalization failed under strict=False — they render
+        # as visible error boxes instead of killing the whole deck.
+        self._failed_cells: dict[int, Exception] = {}
 
     def write(self, path: Path) -> None:
         self._output_path = Path(path)
@@ -111,7 +115,12 @@ class Assembler:
         )
         for slide in self.deck._slides:
             for cell in slide._cells:
-                cell.finalize(ctx)
+                try:
+                    cell.finalize(ctx)
+                except Exception as exc:
+                    if self.strict:
+                        raise
+                    self._failed_cells[id(cell)] = exc
 
     def _build_jinja_env(self) -> jinja2.Environment:
         # Autoescape is ON: user data (titles, table values, captions, ...) is
@@ -295,6 +304,37 @@ class Assembler:
             "credit":    opts.credit,
         }
 
+    def _render_cell(self, cell) -> str:
+        """Render one cell. Under ``strict=False`` a failing cell degrades to a
+        visible error box (grid position preserved) instead of aborting the
+        whole deck — one pathological figure in a 200-slide batch report must
+        not cost the other 199 slides."""
+        exc = self._failed_cells.get(id(cell))
+        if exc is None:
+            try:
+                return cell.render(self._env)
+            except Exception as render_exc:
+                if self.strict:
+                    raise
+                exc = render_exc
+
+        import html as _html
+        import warnings
+        warnings.warn(
+            f"strict=False: cell {cell!r} failed to render and was replaced by "
+            f"an error box: {exc}", stacklevel=2)
+        p = cell.params
+        return (
+            f'<div class="cell cell-error" style="'
+            f'grid-column: {p.col} / span {p.colspan}; '
+            f'grid-row: {p.row} / span {p.rowspan};">'
+            f'<div class="cell-body">'
+            f'<p class="cell-error-title">&#9888; This cell failed to render</p>'
+            f'<pre class="cell-error-detail">{_html.escape(repr(cell))}\n'
+            f'{_html.escape(f"{type(exc).__name__}: {exc}")}</pre>'
+            f'</div></div>'
+        )
+
     def _render(self) -> str:
         deck = self.deck
 
@@ -353,7 +393,7 @@ class Assembler:
                     for i, e in enumerate(toc_entries)
                 ]
 
-            rendered_cells = [cell.render(self._env) for cell in slide._cells]
+            rendered_cells = [self._render_cell(cell) for cell in slide._cells]
             rendered_slides.append({
                 "slide":          slide,
                 "rendered_cells": rendered_cells,
