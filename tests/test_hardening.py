@@ -4,7 +4,7 @@ declaration, isolated defaults, and preview/write idempotency."""
 
 import pytest
 
-from montin import Deck
+from montin import CellDefaults, Deck, Plugins, SlideDefaults
 
 
 def _render(deck, **kw):
@@ -92,6 +92,38 @@ def test_strict_false_degrades_to_error_box(tmp_path):
     assert "cell-error" in html
     assert "pathological figure" in html
     assert "survivor" in html          # the rest of the deck still rendered
+
+
+# ---------------------------------------------------------------------------
+# Plugins can be declared after construction (dynamic _plugin_names)
+# ---------------------------------------------------------------------------
+
+def test_plugin_appended_after_init_is_seen():
+    deck = Deck(title="X")
+    slide = deck.add_slide("S")
+    deck.plugins.append(Plugins.Mermaid())
+    slide.add_mermaid("flowchart LR\n A --> B")   # must not raise
+
+
+# ---------------------------------------------------------------------------
+# Default objects are not shared across decks
+# ---------------------------------------------------------------------------
+
+def test_default_objects_are_not_shared_between_decks():
+    d1 = Deck(title="A")
+    d2 = Deck(title="B")
+    d1.cell_defaults.fontscale = 9.9
+    d1.slide_defaults.nrows = 7
+    assert d2.cell_defaults.fontscale == CellDefaults().fontscale
+    assert d2.slide_defaults.nrows == SlideDefaults().nrows
+
+
+def test_plugin_instances_are_copied_per_deck():
+    p = Plugins.MathJax()
+    d1 = Deck(title="A", plugins=[p])
+    d1.plugins[0].set_cdn("https://intranet.local/mathjax.js")
+    d2 = Deck(title="B", plugins=[p])
+    assert d2.plugins[0].url is None   # d1's mutation did not leak
 
 
 # ---------------------------------------------------------------------------

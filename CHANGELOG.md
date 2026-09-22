@@ -74,6 +74,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   `ink` / `midnight` / `docs-dark` get the dark one.
 - A notebook preview no longer prevents a later `write()` from saving
   `save_source=True` side files (the preview's inlined result was reused).
+- Plugins appended to `deck.plugins` after the deck is created are now
+  recognised by `add_plotly` / `add_mermaid` / … instead of raising
+  `PluginNotDeclaredError`. The default `SlideDefaults` / `CellDefaults` and
+  passed-in plugin instances are no longer shared between decks, so mutating one
+  deck's defaults no longer leaks into the others.
 
 ### Security
 - **HTML autoescaping is on by default.** Titles, subtitles, captions, table

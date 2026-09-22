@@ -6,6 +6,7 @@ Defines ``Deck``, ``Plugin``, ``SlideDefaults``, and ``CellDefaults``.
 
 from __future__ import annotations
 
+import copy
 import datetime
 from dataclasses import dataclass
 from pathlib import Path
@@ -198,10 +199,10 @@ class Deck:
         custom_css:     str | Path | None        = None,
         fontsize_scale: float                    = 1.0,
         self_contained: bool                     = True,
-        plugins:        list[Plugin]             = [],
+        plugins:        list[Plugin] | None      = None,
         plugin_source:  Literal['cdn', 'bundled'] = 'cdn',
-        slide_defaults: SlideDefaults            = SlideDefaults(),   # noqa: B006
-        cell_defaults:  CellDefaults             = CellDefaults(),    # noqa: B006
+        slide_defaults: SlideDefaults | None     = None,
+        cell_defaults:  CellDefaults | None      = None,
         autosave:       str | None               = None,
         autosave_level: Literal['slide', 'cell'] = 'slide',
         size:              tuple[int, int] | None = None,
@@ -229,10 +230,12 @@ class Deck:
         self.custom_css     = custom_css
         self.fontsize_scale = fontsize_scale
         self.self_contained = self_contained
-        self.plugins        = list(plugins)
+        # Fresh objects per deck — a shared default instance (or a caller's
+        # list) mutated on one deck must never leak into another.
+        self.plugins        = [copy.copy(p) for p in (plugins or [])]
         self.plugin_source  = plugin_source
-        self.slide_defaults = slide_defaults
-        self.cell_defaults  = cell_defaults
+        self.slide_defaults = slide_defaults if slide_defaults is not None else SlideDefaults()
+        self.cell_defaults  = cell_defaults if cell_defaults is not None else CellDefaults()
         self.autosave       = autosave
         self.autosave_level = autosave_level
         self.size              = size
@@ -255,8 +258,15 @@ class Deck:
         # Per-Jupyter-cell counters for notebook_unique slide ids.
         self._nb_slide_state: dict = {}
 
-        # Plugin name set for fast membership checks
-        self._plugin_names: frozenset[str] = frozenset(p.name for p in self.plugins)
+    @property
+    def _plugin_names(self) -> frozenset[str]:
+        """Names of the currently declared plugins.
+
+        Computed on demand so that mutating ``deck.plugins`` after construction
+        (e.g. ``deck.plugins.append(Plugins.Plotly())``) is immediately visible
+        to ``add_plotly`` & friends instead of raising PluginNotDeclaredError.
+        """
+        return frozenset(p.name for p in self.plugins)
 
     # ------------------------------------------------------------------
     # Public methods
@@ -602,7 +612,6 @@ class Deck:
             col_widths    = col_widths,
             notes         = notes,
             cell_defaults = cell_defaults,
-            plugin_names  = self._plugin_names,
             parent        = self,
             level         = level,
             show_toc      = show_toc,

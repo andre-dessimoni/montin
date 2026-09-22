@@ -58,7 +58,6 @@ class Slide:
         col_widths: list[int | str] | None,
         notes: str,
         cell_defaults: Any,          # CellDefaults — lazy import to avoid circular deps
-        plugin_names: frozenset[str],
         parent: Deck,
         level: int = 1,
         show_toc: bool = False,
@@ -73,7 +72,6 @@ class Slide:
         self.level        = level
         self.show_toc     = show_toc
         self._cell_defaults = cell_defaults
-        self._plugin_names  = plugin_names
         self.parent       = parent
         self._toc_entries: list[dict] = []  # populated by Assembler at write time
 
@@ -1028,6 +1026,12 @@ class Slide:
     # Internal utilities
     # ------------------------------------------------------------------
 
+    @property
+    def _plugin_names(self) -> frozenset[str]:
+        """The deck's declared plugin names, always read live from the parent so
+        plugins added after this slide was created are seen immediately."""
+        return self.parent._plugin_names
+
     def _require_plugin(self, plugin_name: str, method_name: str) -> None:
         from montin.core.plugins import plugin_registry
         from montin.exceptions import PluginNotDeclaredError
@@ -1134,7 +1138,6 @@ class Slide:
             col_widths    = data.get("col_widths"),
             notes         = data.get("notes", ""),
             cell_defaults = cell_defaults,
-            plugin_names  = parent._plugin_names,
             parent        = parent,
             level         = data.get("level", 1),
             show_toc      = data.get("show_toc", False),

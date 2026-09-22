@@ -168,8 +168,7 @@ class Cell(ABC):
             slide = Slide(
                 slide_id="_preview", title="", subtitle="", slide_type="slide",
                 nrows=1, ncols=1, row_heights=None, col_widths=None, notes="",
-                cell_defaults=deck.cell_defaults, plugin_names=deck._plugin_names,
-                parent=deck,
+                cell_defaults=deck.cell_defaults, parent=deck,
             )
             # Render this very cell at (1,1) so it fills the 1x1 preview canvas.
             saved = self.params
