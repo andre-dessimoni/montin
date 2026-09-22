@@ -44,3 +44,5 @@ Thumbs.db
 # Generated output
 docs/_build/
 docs/_static/example.html
+
+out.gv
