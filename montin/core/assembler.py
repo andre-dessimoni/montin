@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 import jinja2
 from importlib.resources import files as _res_files
 
-from montin.cells import ImageCell, ImageSliderCell
 from montin.exceptions import SecurityError
 from montin.utils.theme_resolver import ThemeResolver
 from montin.utils.vendor import resolve_plugin
@@ -98,105 +97,21 @@ class Assembler:
         return out.parent / f"_{out.stem}_contents"
 
     def _finalize_media(self) -> None:
-        from montin.cells.matplotlib import MatplotlibCell
-        from montin.cells.plotly import PlotlyCell
-        contents_dir = self._contents_dir()
-        out_dir = self._output_path.parent if self._output_path else None
+        """Run every cell's :meth:`Cell.finalize` with the current write context.
+
+        Media resolution is polymorphic — the Assembler knows no concrete cell
+        types, so a new media-bearing cell only implements ``finalize()``.
+        """
+        from montin.cells.base import RenderContext
+
+        ctx = RenderContext(
+            contents_dir=self._contents_dir(),
+            out_dir=self._output_path.parent if self._output_path else None,
+            self_contained=self.deck.self_contained,
+        )
         for slide in self.deck._slides:
             for cell in slide._cells:
-                sid, cid = slide.slide_id, cell.params.cell_id
-                if isinstance(cell, ImageCell):
-                    if cell.resolved_src:
-                        continue
-                    cell.resolved_src = self._resolve_image(
-                        cell.source, cell.to_webp, cell.webp_quality,
-                        cell.save_source, contents_dir, out_dir, sid, cid, 0)
-                elif isinstance(cell, ImageSliderCell):
-                    if cell.resolved_srcs:
-                        continue
-                    cell.resolved_srcs = [
-                        self._resolve_image(
-                            s, cell.to_webp, cell.webp_quality, cell.save_source,
-                            contents_dir, out_dir, sid, cid, i)
-                        for i, s in enumerate(cell.sources)
-                    ]
-                elif isinstance(cell, MatplotlibCell):
-                    self._finalize_matplotlib(cell, contents_dir, out_dir, sid, cid)
-                elif isinstance(cell, PlotlyCell):
-                    self._finalize_plotly(cell, contents_dir, sid, cid)
-
-    def _resolve_image(self, source, to_webp, quality, save_source,
-                       contents_dir, out_dir, sid, cid, i) -> str:
-        import warnings
-        from montin.utils import media
-        stem = f"{media.sanitize_name(sid)}__{media.sanitize_name(cid)}"
-        if i:
-            stem += f"__{i}"
-
-        # matplotlib Figure (slider items) — always has bytes, no original path
-        if hasattr(source, "savefig"):
-            fmt = "webp" if to_webp else "svg"
-            payload, mime, ext, _ = media.figure_to_payload(source, fmt, 150, quality)
-            return self._place_bytes(payload, mime, ext, save_source,
-                                     contents_dir, out_dir, stem)
-
-        data, mime, ext = media.read_image_bytes(source)
-        if data is None:
-            # url / data: / base64 / missing — preserve previous behavior
-            if self.deck.self_contained:
-                from montin.utils.image_encoder import encode
-                try:
-                    return encode(source)
-                except FileNotFoundError:
-                    return str(source)
-            return str(source)
-
-        if not to_webp and not save_source:
-            # plain local image, no conversion/save → original behavior
-            return media.data_uri(data, mime) if self.deck.self_contained else str(source)
-
-        if to_webp:
-            try:
-                data = media.to_webp_bytes(data, quality)
-                mime, ext = "image/webp", "webp"
-            except RuntimeError as exc:
-                warnings.warn(str(exc), stacklevel=2)   # Pillow missing → keep original
-        return self._place_bytes(data, mime, ext, save_source,
-                                 contents_dir, out_dir, stem)
-
-    def _place_bytes(self, data, mime, ext, save_source,
-                     contents_dir, out_dir, stem) -> str:
-        """Inline (self-contained) or write-and-reference (otherwise) owned bytes."""
-        from montin.utils import media
-        written = None
-        need_file = save_source or (not self.deck.self_contained)
-        if need_file and contents_dir is not None:
-            written = media.write_asset(contents_dir, stem, ext, data)
-        if self.deck.self_contained:
-            return media.data_uri(data, mime)        # side file written iff save_source
-        if written is not None:
-            return media.rel_url(written, out_dir)
-        return media.data_uri(data, mime)            # no folder (preview) → inline
-
-    def _finalize_matplotlib(self, cell, contents_dir, out_dir, sid, cid) -> None:
-        from montin.utils import media
-        if not cell.save_source or contents_dir is None:
-            return   # otherwise the figure stays inline (it has no external source)
-        stem = f"{media.sanitize_name(sid)}__{media.sanitize_name(cid)}"
-        written = media.write_asset(contents_dir, stem, cell._ext, cell._payload)
-        if not self.deck.self_contained:
-            cell.resolved_src = media.rel_url(written, out_dir)
-
-    def _finalize_plotly(self, cell, contents_dir, sid, cid) -> None:
-        from montin.utils import media
-        if not cell.save_source or contents_dir is None:
-            return
-        stem = f"{media.sanitize_name(sid)}__{media.sanitize_name(cid)}"
-        try:
-            contents_dir.mkdir(parents=True, exist_ok=True)
-            cell.fig.write_html(str(contents_dir / f"{stem}.html"))
-        except Exception:
-            pass   # never fail a write because a side artifact could not be saved
+                cell.finalize(ctx)
 
     def _build_jinja_env(self) -> jinja2.Environment:
         # Autoescape is ON: user data (titles, table values, captions, ...) is

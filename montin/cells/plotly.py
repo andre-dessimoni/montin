@@ -35,6 +35,19 @@ class PlotlyCell(Cell):
             from montin.exceptions import InvalidDataError
             raise InvalidDataError(f"Failed to serialize Plotly figure: {exc}") from exc
 
+    def finalize(self, ctx) -> None:
+        # No fig -> nothing to save (cell built from extracted JSON).
+        if not self.save_source or ctx.contents_dir is None or self.fig is None:
+            return
+        if getattr(self, "_finalized_key", None) == ctx.key():
+            return   # same context as the previous render — nothing changed
+        try:
+            ctx.contents_dir.mkdir(parents=True, exist_ok=True)
+            self.fig.write_html(str(ctx.contents_dir / f"{self._asset_stem()}.html"))
+            self._finalized_key = ctx.key()
+        except Exception:
+            pass   # never fail a write because a side artifact could not be saved
+
     def render(self, env: "jinja2.Environment") -> str:
         # The figure JSON travels in a <script type="application/json"> block
         # (not an HTML attribute, where every quote would inflate to &quot;).

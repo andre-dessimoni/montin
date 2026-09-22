@@ -77,6 +77,19 @@ class MatplotlibCell(Cell):
             from montin.exceptions import InvalidDataError
             raise InvalidDataError(f"Failed to encode matplotlib figure: {exc}") from exc
 
+    def finalize(self, ctx) -> None:
+        if getattr(self, "_finalized_key", None) == ctx.key():
+            return   # same context as the previous render — nothing changed
+        # Recompute from the current context — a preview may have run earlier.
+        self.resolved_src = ""
+        if self.save_source and ctx.contents_dir is not None:
+            from montin.utils import media
+            written = media.write_asset(
+                ctx.contents_dir, self._asset_stem(), self._ext, self._payload)
+            if not ctx.self_contained:
+                self.resolved_src = media.rel_url(written, ctx.out_dir)
+        self._finalized_key = ctx.key()
+
     def render(self, env: "jinja2.Environment") -> str:
         # Inline SVG only when we are embedding it (not pointing at a saved file).
         if self.is_svg and not self.resolved_src:

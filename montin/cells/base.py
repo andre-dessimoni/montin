@@ -82,6 +82,29 @@ class CellParams:
 # Cell — abstract base class
 # ---------------------------------------------------------------------------
 
+@dataclass
+class RenderContext:
+    """Write-time facts a cell needs to resolve its media in :meth:`Cell.finalize`.
+
+    ``contents_dir`` / ``out_dir`` are ``None`` during notebook previews (there
+    is no output file), in which case everything is inlined.
+    """
+
+    contents_dir: "Path | None"
+    out_dir: "Path | None"
+    self_contained: bool
+
+    def key(self) -> tuple:
+        """Hashable identity of this context.
+
+        Lets ``finalize()`` implementations skip re-resolving media when called
+        again with the *same* context (autosave re-renders the deck on every
+        change) while still recomputing whenever the context differs (a preview
+        inlines everything; the real write may save side files instead).
+        """
+        return (str(self.contents_dir), str(self.out_dir), self.self_contained)
+
+
 class Cell(ABC):
     """
     Base class for all cells. Every concrete subtype must implement
@@ -96,6 +119,25 @@ class Cell(ABC):
     def render(self, env: "jinja2.Environment") -> str:
         """Renders and returns the cell's HTML fragment."""
         ...
+
+    def finalize(self, ctx: RenderContext) -> None:
+        """Resolve this cell's media for the final output (inline data URIs
+        and/or side files in the contents folder).
+
+        Called by the Assembler once per render, before :meth:`render`. Must be
+        **idempotent and context-independent**: a notebook preview may already
+        have run it with a different context in the same session, so recompute
+        from ``ctx`` rather than caching the first result. The default does
+        nothing — only media-bearing cells override it.
+        """
+
+    def _asset_stem(self) -> str:
+        """Filename stem for this cell's side files, unique within the deck."""
+        from montin.utils import media
+
+        sl = self._slide
+        sid = sl.slide_id if sl is not None else "slide"
+        return f"{media.sanitize_name(sid)}__{media.sanitize_name(self.params.cell_id)}"
 
     def _repr_html_(self) -> str:
         """Render an inline preview of this single cell for Jupyter notebooks.

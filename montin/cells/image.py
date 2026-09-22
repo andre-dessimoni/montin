@@ -41,6 +41,17 @@ class ImageCell(Cell):
             self.source = s
         self.resolved_src: str = ""  # filled by Assembler before render
 
+    def finalize(self, ctx) -> None:
+        from montin.utils import media
+        if getattr(self, "_finalized_key", None) == ctx.key():
+            return   # same context as the previous render — nothing changed
+        self.resolved_src = media.resolve_image_source(
+            self.source, to_webp=self.to_webp, quality=self.webp_quality,
+            save_source=self.save_source, contents_dir=ctx.contents_dir,
+            out_dir=ctx.out_dir, stem=self._asset_stem(),
+            self_contained=ctx.self_contained)
+        self._finalized_key = ctx.key()
+
     def render(self, env: "jinja2.Environment") -> str:
         return env.get_template("cell_image.html").render(cell=self)
 

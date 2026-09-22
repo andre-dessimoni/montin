@@ -5,6 +5,11 @@ declaration, isolated defaults, and preview/write idempotency."""
 from montin import Deck
 
 
+def _render(deck, **kw):
+    from montin.core.assembler import Assembler
+    return Assembler(deck, **kw)._render()
+
+
 # ---------------------------------------------------------------------------
 # Autoescape: user data with <, >, &, quotes must render faithfully
 # ---------------------------------------------------------------------------
@@ -47,3 +52,23 @@ def test_add_text_plain_mode_escapes(tmp_path):
     html = deck.write(tmp_path / "out").read_text(encoding="utf-8")
     assert "<script>alert(1)</script>" not in html
     assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+
+
+# ---------------------------------------------------------------------------
+# Render is idempotent: a preview must not contaminate a later write
+# ---------------------------------------------------------------------------
+
+def test_preview_then_write_still_saves_side_files(tmp_path):
+    img = tmp_path / "pic.png"
+    # Tiny valid PNG (1x1, pre-encoded).
+    img.write_bytes(bytes.fromhex(
+        "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489"
+        "0000000d49444154789c62f8cfc0f01f000500fe02fe0d774d310000000049454e"
+        "44ae426082"))
+    deck = Deck(title="X")
+    deck.add_slide("S").add_image(str(img), save_source=True)
+    _render(deck)                                    # preview: inlines everything
+    out = deck.write(tmp_path / "report")            # real write afterwards
+    contents = out.parent / "_report_contents"
+    saved = list(contents.glob("*.png")) if contents.exists() else []
+    assert saved, "save_source side file must be written even after a preview"

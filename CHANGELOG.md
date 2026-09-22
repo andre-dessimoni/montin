@@ -67,6 +67,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   declaration (the new `theme.json`) instead of hard-coded theme names: light
   themes — including the new default — get the light table stylesheet, and
   `ink` / `midnight` / `docs-dark` get the dark one.
+- A notebook preview no longer prevents a later `write()` from saving
+  `save_source=True` side files (the preview's inlined result was reused).
 
 ### Security
 - **HTML autoescaping is on by default.** Titles, subtitles, captions, table

@@ -37,6 +37,21 @@ class ImageSliderCell(Cell):
         self.save_source = save_source
         self.resolved_srcs: list[str] = []  # filled by Assembler
 
+    def finalize(self, ctx) -> None:
+        from montin.utils import media
+        if getattr(self, "_finalized_key", None) == ctx.key():
+            return   # same context as the previous render — nothing changed
+        stem = self._asset_stem()
+        self.resolved_srcs = [
+            media.resolve_image_source(
+                s, to_webp=self.to_webp, quality=self.webp_quality,
+                save_source=self.save_source, contents_dir=ctx.contents_dir,
+                out_dir=ctx.out_dir, stem=(f"{stem}__{i}" if i else stem),
+                self_contained=ctx.self_contained)
+            for i, s in enumerate(self.sources)
+        ]
+        self._finalized_key = ctx.key()
+
     def render(self, env: "jinja2.Environment") -> str:
         return env.get_template("cell_image_slider.html").render(cell=self)
 

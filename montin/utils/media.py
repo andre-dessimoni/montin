@@ -124,3 +124,59 @@ def write_asset(contents_dir: Path, stem: str, ext: str, payload: bytes) -> Path
 def rel_url(target: Path, base_dir: Path) -> str:
     """Web-style relative path from ``base_dir`` to ``target`` (forward slashes)."""
     return os.path.relpath(str(target), str(base_dir)).replace("\\", "/")
+
+
+def place_bytes(data: bytes, mime: str, ext: str, *, save_source: bool,
+                contents_dir: "Path | None", out_dir: "Path | None",
+                stem: str, self_contained: bool) -> str:
+    """Inline (self-contained) or write-and-reference (otherwise) owned bytes."""
+    written = None
+    need_file = save_source or (not self_contained)
+    if need_file and contents_dir is not None:
+        written = write_asset(contents_dir, stem, ext, data)
+    if self_contained:
+        return data_uri(data, mime)        # side file written iff save_source
+    if written is not None:
+        return rel_url(written, out_dir)
+    return data_uri(data, mime)            # no folder (preview) -> inline
+
+
+def resolve_image_source(source: object, *, to_webp: bool, quality: "int | None",
+                         save_source: bool, contents_dir: "Path | None",
+                         out_dir: "Path | None", stem: str,
+                         self_contained: bool) -> str:
+    """Resolve one image source (path / URL / data URI / base64 / matplotlib
+    Figure) to the ``src`` string the template embeds — converting to WebP
+    and/or saving a side file on the way when asked to."""
+    # matplotlib Figure — always has bytes, no original path
+    if hasattr(source, "savefig"):
+        fmt = "webp" if to_webp else "svg"
+        payload, mime, ext, _ = figure_to_payload(source, fmt, 150, quality)
+        return place_bytes(payload, mime, ext, save_source=save_source,
+                           contents_dir=contents_dir, out_dir=out_dir,
+                           stem=stem, self_contained=self_contained)
+
+    data, mime, ext = read_image_bytes(source)
+    if data is None:
+        # url / data: / base64 / missing — pass through (encode when inlining)
+        if self_contained:
+            from montin.utils.image_encoder import encode
+            try:
+                return encode(source)
+            except FileNotFoundError:
+                return str(source)
+        return str(source)
+
+    if not to_webp and not save_source:
+        # plain local image, no conversion/save
+        return data_uri(data, mime) if self_contained else str(source)
+
+    if to_webp:
+        try:
+            data = to_webp_bytes(data, quality)
+            mime, ext = "image/webp", "webp"
+        except RuntimeError as exc:
+            warnings.warn(str(exc), stacklevel=2)   # Pillow missing -> keep original
+    return place_bytes(data, mime, ext, save_source=save_source,
+                       contents_dir=contents_dir, out_dir=out_dir,
+                       stem=stem, self_contained=self_contained)
