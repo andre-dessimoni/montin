@@ -193,25 +193,31 @@ slide.add_text("Headline", fontscale=1.5)         # this cell: 1.2 × 1.5
 
 ## Fixed-size slides
 
-By default the layout is fluid and fills the browser window. Pass `size` to
+By default the layout is fluid and fills the browser window. Pass `stage` to
 pin slides to fixed pixel dimensions instead. The slide becomes a *stage* that
 is scaled with a CSS transform to fit the available space — fonts, images, and
 layout all scale together, so the result behaves like a static PDF page.
 
 ```python
+from montin import Deck, Stage
+
 deck = Deck(
     title="Report",
-    size=(1366, 768),          # 16:9 stage in pixels
-    scale_up=False,            # don't grow past 1:1 on large screens (default)
-    keep_aspect_ratio=True,    # uniform scale + letterbox (default)
+    stage=Stage(
+        size=(1366, 768),          # 16:9 stage in pixels
+        scale_up=False,            # don't grow past 1:1 on large screens (default)
+        keep_aspect_ratio=True,    # uniform scale + letterbox (default)
+    ),
 )
+
+deck = Deck(title="Report", stage=(1366, 768))   # shorthand, default options
 ```
 
 | Option | Effect |
 |---|---|
-| `size=(w, h)` | Enables fixed-size mode. `None` (default) keeps the fluid layout |
-| `scale_up=True` | Allow the stage to grow beyond its native size to fill larger windows |
-| `keep_aspect_ratio=False` | Stretch to fill both dimensions independently (distorts content) |
+| `Stage(size=(w, h))` | Enables fixed-size mode. `Deck(stage=None)` (default) keeps the fluid layout |
+| `Stage(scale_up=True)` | Allow the stage to grow beyond its native size to fill larger windows |
+| `Stage(keep_aspect_ratio=False)` | Stretch to fill both dimensions independently (distorts content) |
 
 This is also the recommended mode for embedding a deck in an `<iframe>`, since
 the slide keeps a predictable aspect ratio regardless of the frame size.
@@ -224,21 +230,23 @@ documentation — hide the navigation sidebar and/or the bottom toolbar:
 ```python
 deck = Deck(
     title="Demo",
-    size=(960, 540),
-    show_sidebar=False,
+    stage=(960, 540),
+    sidebar=False,
     show_toolbar=False,
 )
 deck.add_slide("Just this slide").add_text("No chrome around me.")
 ```
 
-With both hidden the slide fills the whole frame. Combine with `size` for a
+With both hidden the slide fills the whole frame. Combine with `stage` for a
 fixed aspect ratio that embeds cleanly in an `<iframe>`.
 
 To keep the sidebar available but out of the way, start it collapsed instead of
 hiding it — it can still be toggled open with the toolbar button or the `B` key:
 
 ```python
-deck = Deck(title="Report", sidebar_collapsed=True)
+from montin import Deck, Sidebar
+
+deck = Deck(title="Report", sidebar=Sidebar(collapsed=True))
 ```
 
 ## Sidebar navigation
@@ -251,19 +259,23 @@ For longer decks the sidebar has two navigation aids, both on by default:
   collapsed state is remembered across reloads.
 
 ```python
+from montin import Deck, Sidebar
+
 deck = Deck(
     title="Report",
-    sidebar_search=True,                 # show the filter box (default)
-    sidebar_search_scope="title",        # "title" | "title_subtitle" | "content"
-    sidebar_collapsible_sections=True,   # show section carets (default)
+    sidebar=Sidebar(
+        search=True,                 # show the filter box (default)
+        search_scope="title",        # "title" | "title_subtitle" | "content"
+        collapsible_sections=True,   # show section carets (default)
+    ),
 )
 ```
 
 | Option | Effect |
 |---|---|
-| `sidebar_search` | Show/hide the search box |
-| `sidebar_search_scope` | What the regex matches: the title, title + subtitle, or the slide's full rendered text (`"content"`) |
-| `sidebar_collapsible_sections` | Show/hide the fold carets on section items |
+| `Sidebar(search=...)` | Show/hide the search box |
+| `Sidebar(search_scope=...)` | What the regex matches: the title, title + subtitle, or the slide's full rendered text (`"content"`) |
+| `Sidebar(collapsible_sections=...)` | Show/hide the fold carets on section items |
 
 The search is case-insensitive and accepts full JavaScript regex (e.g.
 `^Intro|results$`); an invalid pattern simply leaves the list unfiltered. While a

@@ -5,7 +5,7 @@ slide_id so the docs deep-link to it (e.g. <iframe src="...tabulator.html#format
 Run via `make.bat deck` (or any docs build). See docs/conf.py.
 """
 
-from montin import Deck, Plugins
+from montin import Deck, Plugins, Sidebar, Stage
 
 # --- Standardized docs settings (docs/script-settings.yaml) -----------------
 import sys as _sys
@@ -17,9 +17,8 @@ deck = Deck(
     fontsize_scale=FONTSCALE,
     title="Interactive tables",
     plugins=[Plugins.Tabulator()],
-    size=(1280, 720),
-    scale_up=True,
-    sidebar_collapsed=True,
+    stage=Stage(size=(1280, 720), scale_up=True),
+    sidebar=Sidebar(collapsed=True),
 )
 
 data = {

@@ -6,7 +6,7 @@ other, and slide 3 links out to an external website.
 Run via `make.bat deck` (or any docs build). See docs/conf.py.
 """
 
-from montin import Deck
+from montin import Deck, Sidebar, Stage
 
 # --- Standardized docs settings (docs/script-settings.yaml) -----------------
 import sys as _sys
@@ -17,9 +17,8 @@ from _docs_settings import FONTSCALE
 deck = Deck(
     fontsize_scale=FONTSCALE,
     title="Links",
-    size=(1280, 720),
-    scale_up=True,
-    sidebar_collapsed=True,
+    stage=Stage(size=(1280, 720), scale_up=True),
+    sidebar=Sidebar(collapsed=True),
 )
 
 # -- Slide 1 — internal link to slide 2 -----------------------------------

@@ -11,7 +11,8 @@ its own file (unlike the per-slide layout examples). Written into
 """
 
 from montin import (
-    Bars, Cells, Deck, Fonts, Footer, Header, Logo, ThemeOptions, Watermark,
+    Bars, Cells, Deck, Fonts, Footer, Header, Logo, Sidebar, Stage,
+    ThemeOptions, Watermark,
 )
 
 # --- Standardized docs settings (docs/script-settings.yaml) -----------------
@@ -43,9 +44,8 @@ def _new(title, theme, **kw):
         title=title,
         theme=theme,
         fontsize_scale=FONTSCALE,
-        size=(1280, 720),
-        scale_up=True,
-        sidebar_collapsed=True,
+        stage=Stage(size=(1280, 720), scale_up=True),
+        sidebar=Sidebar(collapsed=True),
         **kw,
     )
 

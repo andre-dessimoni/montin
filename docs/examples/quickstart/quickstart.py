@@ -7,7 +7,7 @@ Run via `make.bat deck` (or any docs build). See docs/conf.py.
 
 import plotly.express as px
 
-from montin import Deck, Plugins
+from montin import Deck, Plugins, Sidebar, Stage
 
 # --- Standardized docs settings (docs/script-settings.yaml) -----------------
 import sys as _sys
@@ -20,9 +20,8 @@ deck = Deck(
     title="Q2 Report",
     author="A. Dessimoni",
     plugins=[Plugins.Plotly(), Plugins.Mermaid()],
-    size=(1280, 720),
-    scale_up=True,
-    sidebar_collapsed=True,
+    stage=Stage(size=(1280, 720), scale_up=True),
+    sidebar=Sidebar(collapsed=True),
 )
 
 # -- KPIs + pipeline diagram -----------------------------------------------

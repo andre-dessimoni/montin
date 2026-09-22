@@ -5,7 +5,7 @@ deep-link to it from an <iframe src="...layout.html#grid-sizing"> block.
 Run via `make.bat deck` (or any docs build). See docs/conf.py.
 """
 
-from montin import CellDefaults, Deck, SlideDefaults
+from montin import CellDefaults, Deck, Sidebar, SlideDefaults, Stage
 
 # --- Standardized docs settings (docs/script-settings.yaml) -----------------
 import sys as _sys
@@ -16,10 +16,8 @@ from _docs_settings import FONTSCALE
 deck = Deck(
     fontsize_scale=FONTSCALE,
     title="Layout",
-    size=(1280, 720),
-    scale_up=True,
-    sidebar_collapsed=True,
-    sidebar_collapsible_sections=True, sidebar_search=True,
+    stage=Stage(size=(1280, 720), scale_up=True),
+    sidebar=Sidebar(collapsed=True),
 )
 
 # -- Auto-placement (grid-basic) -------------------------------------------

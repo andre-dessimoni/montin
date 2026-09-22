@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
 
-from montin import Deck, Plugins
+from montin import Deck, Plugins, Stage
 
 # --- Standardized docs settings (docs/script-settings.yaml) -----------------
 import sys as _sys
@@ -22,9 +22,7 @@ deck = Deck(
         Plugins.Plotly(),
     ],
     theme='dark',
-    size=(1280, 720),
-    scale_up=True,
-    sidebar_collapsed=False,
+    stage=Stage(size=(1280, 720), scale_up=True),
 )
 
 # -----------------------------------------------------------------------------

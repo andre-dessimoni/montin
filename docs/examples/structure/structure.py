@@ -6,7 +6,7 @@ sections at two levels (some with inline TOCs), plus an untracked appendix.
 Run via `make.bat deck` (or any docs build). See docs/conf.py.
 """
 
-from montin import Deck, Plugins
+from montin import Deck, Plugins, Sidebar, Stage
 
 # --- Standardized docs settings (docs/script-settings.yaml) -----------------
 import sys as _sys
@@ -21,9 +21,8 @@ deck = Deck(
     date="2025-06-01",
     version="3.0",
     plugins=[Plugins.Mermaid()],
-    size=(1280, 720),
-    scale_up=True,
-    sidebar_collapsed=True,
+    stage=Stage(size=(1280, 720), scale_up=True),
+    sidebar=Sidebar(collapsed=True),
     theme='light',
 )
 
