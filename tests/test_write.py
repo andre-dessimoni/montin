@@ -225,7 +225,7 @@ def test_sidebar_search_and_caret_in_output(tmp_path):
     assert "filterSidebar(" in html
     assert 'data-sb-search-scope="title"' in html
     assert "sidebar-caret" in html
-    assert 'onclick="toggleSection(event' in html
+    assert "onclick='toggleSection(event" in html
     assert 'data-type="section"' in html
 
 
@@ -248,7 +248,7 @@ def test_sidebar_collapsible_sections_disabled(tmp_path):
     deck.add_section("Intro")
     html = deck.write(tmp_path / "out", open_browser=False).read_text(encoding="utf-8")
     # The inline caret onclick must be gone (the JS function definition remains).
-    assert 'onclick="toggleSection(event' not in html
+    assert "onclick='toggleSection(event" not in html
     assert "sidebar-caret-spacer" in html   # section falls back to the spacer
 
 

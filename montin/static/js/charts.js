@@ -30,7 +30,8 @@
     var containers = document.querySelectorAll(".plotly-container");
     containers.forEach(function(el) {
       try {
-        var raw = el.getAttribute("data-fig");
+        var figEl = el.querySelector('script[type="application/json"]');
+        var raw = figEl ? figEl.textContent : el.getAttribute("data-fig");
         if (!raw) return;
         var fig = JSON.parse(raw);
         var base = fig.layout || {};

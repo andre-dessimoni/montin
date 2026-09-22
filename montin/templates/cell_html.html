@@ -18,7 +18,8 @@
   </div>
   {% endif %}
 
-  <div class="cell-body html-body">{{ cell.content }}</div>
+  {# add_html is the documented raw-HTML escape hatch — injected verbatim. #}
+  <div class="cell-body html-body">{{ cell.content | safe }}</div>
 
   {% if cell.params.caption %}
   <p class="cell-caption">{{ cell.params.caption }}</p>

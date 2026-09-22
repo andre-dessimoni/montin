@@ -2,9 +2,9 @@
 {% macro logo_group(items, extra_class="") %}
 {% for lg in items %}
 {% if lg.link %}
-<a class="deck-logo {{ extra_class }}" href="{{ lg.link | e }}" target="_blank" rel="noopener"{% if lg.height %} style="--logo-height: {{ lg.height }};"{% endif %}>{% if lg.img %}<img src="{{ lg.img }}" alt="logo">{% else %}{{ lg.text | e }}{% endif %}</a>
+<a class="deck-logo {{ extra_class }}" href="{{ lg.link }}" target="_blank" rel="noopener"{% if lg.height %} style="--logo-height: {{ lg.height }};"{% endif %}>{% if lg.img %}<img src="{{ lg.img }}" alt="logo">{% else %}{{ lg.text }}{% endif %}</a>
 {% else %}
-<span class="deck-logo {{ extra_class }}"{% if lg.height %} style="--logo-height: {{ lg.height }};"{% endif %}>{% if lg.img %}<img src="{{ lg.img }}" alt="logo">{% else %}{{ lg.text | e }}{% endif %}</span>
+<span class="deck-logo {{ extra_class }}"{% if lg.height %} style="--logo-height: {{ lg.height }};"{% endif %}>{% if lg.img %}<img src="{{ lg.img }}" alt="logo">{% else %}{{ lg.text }}{% endif %}</span>
 {% endif %}
 {% endfor %}
 {% endmacro %}
@@ -15,13 +15,13 @@
 {% elif wm.mode == 'image' %}
 <div class="slide-watermark wm-{{ wm.position }}"><img src="{{ wm.img }}" alt=""></div>
 {% else %}
-<div class="slide-watermark wm-text wm-{{ 'center' if wm.position == 'tiled' else wm.position }}">{{ wm.text | e }}</div>
+<div class="slide-watermark wm-text wm-{{ 'center' if wm.position == 'tiled' else wm.position }}">{{ wm.text }}</div>
 {% endif %}
 {% endif %}
 {% endmacro %}
 {% macro footer(item) %}
 {% if theme_options and theme_options.footer and item.slide.slide_type != 'title' %}
-<footer class="slide-footer footer-{{ theme_options.footer.align }}">{{ item.footer_text | e }}</footer>
+<footer class="slide-footer footer-{{ theme_options.footer.align }}">{{ item.footer_text }}</footer>
 {% endif %}
 {% endmacro %}
 <!DOCTYPE html>
@@ -46,7 +46,7 @@
   <meta name="date"    content="{{ deck.date }}">
   <title>{{ deck.title }}</title>
   <style>
-{{ css }}
+{{ css | safe }}
   </style>
 </head>
 <body
@@ -95,10 +95,10 @@
         data-target="{{ slide.slide_id }}"
         data-type="{{ slide.slide_type }}"
         data-level="{% if slide.slide_type == 'section' %}{{ slide.level }}{% else %}0{% endif %}"
-        data-subtitle="{{ slide.subtitle | e }}"
-        onclick="goToSlide('{{ slide.slide_id }}')">
+        data-subtitle="{{ slide.subtitle }}"
+        onclick='goToSlide({{ slide.slide_id | string | tojson }})'>
       {% if slide.slide_type == 'section' and deck.sidebar_collapsible_sections %}
-      <span class="sidebar-caret" onclick="toggleSection(event, '{{ slide.slide_id }}')">&#9656;</span>
+      <span class="sidebar-caret" onclick='toggleSection(event, {{ slide.slide_id | string | tojson }})'>&#9656;</span>
       {% else %}
       <span class="sidebar-caret-spacer"></span>
       {% endif %}
@@ -174,7 +174,7 @@
       {% for entry in item.toc_entries %}
       <div class="toc-entry toc-level-{{ entry.level }}">
         <a href="#{{ entry.slide_id }}"
-           onclick="goToSlide('{{ entry.slide_id }}'); return false;"
+           onclick='goToSlide({{ entry.slide_id | string | tojson }}); return false;'
            class="toc-entry-link">{{ entry.title }}</a>
       </div>
       {% endfor %}
@@ -214,7 +214,7 @@
       "
     >
       {% for cell_html in item.rendered_cells %}
-      {{ cell_html }}
+      {{ cell_html | safe }}
       {% endfor %}
     </div>
 
@@ -261,7 +261,7 @@
 <div id="overview" class="hidden">
   {% for item in rendered_slides %}
   {% set slide = item.slide %}
-  <div class="overview-thumb" onclick="goToSlide('{{ slide.slide_id }}'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide({{ slide.slide_id | string | tojson }}); toggleOverview()'>
     <span class="overview-num">{{ loop.index }}</span>
     <span class="overview-title">{{ slide.title }}</span>
   </div>
@@ -303,23 +303,23 @@ window.MathJax = {
 {# Plugin libraries — inlined (bundled) or linked (cdn), resolved in the assembler. #}
 {% for a in plugin_assets %}
 {% if a.type == 'css' and a.mode == 'inline' %}
-<style>{{ a.text }}</style>
+<style>{{ a.text | safe }}</style>
 {% elif a.type == 'css' %}
 <link rel="stylesheet" href="{{ a.url }}"{% if a.integrity %} integrity="{{ a.integrity }}" crossorigin="anonymous"{% endif %}>
 {% elif a.mode == 'inline' %}
-<script>{{ a.text }}</script>
+<script>{{ a.text | safe }}</script>
 {% else %}
 <script src="{{ a.url }}"{% if a.integrity %} integrity="{{ a.integrity }}" crossorigin="anonymous"{% endif %} charset="utf-8"></script>
 {% endif %}
 {% endfor %}
 
 {% if "mermaid" in plugin_names %}
-<script>mermaid.initialize({ startOnLoad: false, theme: "{{ plugin_opts.mermaid.theme if plugin_opts.mermaid else 'dark' }}" });</script>
+<script>mermaid.initialize({ startOnLoad: false, theme: {{ (plugin_opts.mermaid.theme if plugin_opts.mermaid else 'dark') | tojson }} });</script>
 {% endif %}
 
 <!-- ===================== JS ===================== -->
 <script>
-{{ main_js }}
+{{ main_js | safe }}
 </script>
 
 {% if "highlight" in plugin_names %}

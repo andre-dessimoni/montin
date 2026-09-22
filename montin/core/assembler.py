@@ -199,9 +199,13 @@ class Assembler:
             pass   # never fail a write because a side artifact could not be saved
 
     def _build_jinja_env(self) -> jinja2.Environment:
+        # Autoescape is ON: user data (titles, table values, captions, ...) is
+        # HTML-escaped by default. Trusted, pre-rendered content (markdown HTML,
+        # inlined JS/CSS, sanitised JSON) is marked with `| safe` in the
+        # templates — unsafe injection is a visible opt-in, never the default.
         return jinja2.Environment(
             loader=jinja2.FileSystemLoader(str(_templates_dir())),
-            autoescape=False,
+            autoescape=True,
             trim_blocks=True,
             lstrip_blocks=True,
         )

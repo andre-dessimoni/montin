@@ -18,7 +18,9 @@
   </div>
   {% endif %}
 
-  <div class="cell-body cell-text-body markdown-body">{{ cell.rendered_html }}</div>
+  {# markdown=True: rendered_html is generated HTML (trusted). markdown=False:
+     the docstring promises plain text, so it is escaped like any user data. #}
+  <div class="cell-body cell-text-body markdown-body">{% if cell.markdown %}{{ cell.rendered_html | safe }}{% else %}{{ cell.rendered_html }}{% endif %}</div>
 
   {% if cell.params.caption %}
   <p class="cell-caption">{{ cell.params.caption }}</p>

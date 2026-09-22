@@ -68,6 +68,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   themes — including the new default — get the light table stylesheet, and
   `ink` / `midnight` / `docs-dark` get the dark one.
 
+### Security
+- **HTML autoescaping is on by default.** Titles, subtitles, captions, table
+  values and other user data are HTML-escaped, so `<`, `>`, `&` and quotes
+  render literally instead of breaking — or injecting into — the markup.
+  `add_html()` remains the explicit raw-HTML path, and `add_text(markdown=False)`
+  now escapes its input as documented. Slide ids are JSON-encoded inside the
+  inline navigation handlers, and the Plotly figure JSON travels in a
+  `<script type="application/json">` block with `<` / `>` escaped.
+
 ## [0.5.0] - 2026-06-22
 
 ### Added

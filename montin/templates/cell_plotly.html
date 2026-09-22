@@ -12,11 +12,11 @@
   </div>
   {% endif %}
 
-  <div class="cell-body plotly-body" id="plotly-{{ cell.params.col }}-{{ cell.params.row }}">
-    <div
-      class="plotly-container"
-      data-fig="{{ cell.fig_json | e }}"
-    ></div>
+  <div class="cell-body plotly-body">
+    {# The figure JSON is < / > \u-escaped (see PlotlyCell.render), so it can
+       never close this tag early. Plotly.newPlot replaces the container's
+       children after the JSON has been parsed. #}
+    <div class="plotly-container"><script type="application/json">{{ fig_json_embed | safe }}</script></div>
   </div>
 
   {% if cell.params.caption %}

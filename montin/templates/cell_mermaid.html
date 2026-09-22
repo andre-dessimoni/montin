@@ -19,7 +19,7 @@
   {% endif %}
 
   <div class="cell-body mermaid-body">
-    <pre class="mermaid">{{ cell.diagram.strip() | e }}</pre>
+    <pre class="mermaid">{{ cell.diagram.strip() }}</pre>
   </div>
 
   {% if cell.params.caption %}

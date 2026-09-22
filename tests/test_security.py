@@ -1,6 +1,7 @@
 """Tests for Security(...) hardening and the block_external offline guarantee."""
 
 import dataclasses
+import html as html_mod
 import re
 
 import pytest
@@ -74,8 +75,11 @@ def test_sri_off_drops_integrity():
 def test_block_external_emits_strict_csp():
     html = _render(_deck(plugins=[Plugins.Plotly()], block_external=True))
     assert "Content-Security-Policy" in html
-    assert "default-src 'none'" in html
-    assert "connect-src 'none'" in html
+    # Attribute values are autoescaped (' -> &#39;); browsers decode them, so
+    # compare against the unescaped document.
+    unescaped = html_mod.unescape(html)
+    assert "default-src 'none'" in unescaped
+    assert "connect-src 'none'" in unescaped
 
 
 def test_block_external_forces_bundled_and_has_no_external_loads():
@@ -104,14 +108,15 @@ def test_block_external_catches_external_image():
 
 def test_block_external_allows_navigation_links():
     # A clickable external <a href> is navigation, not a load — must be allowed.
+    # (add_html is the raw-HTML path; add_text(markdown=False) escapes its input.)
     deck = Deck(title="X", security=Security(block_external=True))
-    deck.add_slide("S").add_text('<a href="https://example.com">docs</a>', markdown=False)
+    deck.add_slide("S").add_html('<a href="https://example.com">docs</a>')
     _render(deck)   # must not raise
 
 
 def test_custom_csp_overrides_generated():
     html = _render(_deck(csp="default-src 'self'"))
-    assert "content=\"default-src 'self'\"" in html
+    assert "content=\"default-src 'self'\"" in html_mod.unescape(html)
 
 
 # ---------------------------------------------------------------------------

@@ -19,7 +19,7 @@
   {% endif %}
 
   <div class="cell-body code-body">
-    <pre class="hs-pre"><code class="language-{{ cell.language }}">{{ cell.code | e }}</code></pre>
+    <pre class="hs-pre"><code class="language-{{ cell.language }}">{{ cell.code }}</code></pre>
   </div>
 
   {% if cell.params.caption %}

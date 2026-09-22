@@ -19,7 +19,8 @@
 
   <div class="cell-body image-body matplotlib-svg{% if cell.lightbox %} lightbox-trigger{% endif %}"
     {% if cell.lightbox %}onclick="openLightbox(this)"{% endif %}>
-    {{ cell.src }}
+    {# cell.src is SVG markup produced by matplotlib itself (trusted). #}
+    {{ cell.src | safe }}
   </div>
 
   {% if cell.params.caption %}

@@ -36,7 +36,15 @@ class PlotlyCell(Cell):
             raise InvalidDataError(f"Failed to serialize Plotly figure: {exc}") from exc
 
     def render(self, env: "jinja2.Environment") -> str:
-        return env.get_template("cell_plotly.html").render(cell=self)
+        # The figure JSON travels in a <script type="application/json"> block
+        # (not an HTML attribute, where every quote would inflate to &quot;).
+        # < and > are \u-escaped so the payload can never close the tag early —
+        # same technique as TabulatorCell._safe_json.
+        fig_json_embed = (
+            self.fig_json.replace("<", "\\u003c").replace(">", "\\u003e")
+        )
+        return env.get_template("cell_plotly.html").render(
+            cell=self, fig_json_embed=fig_json_embed)
 
     @classmethod
     def from_html(
