@@ -33,7 +33,7 @@
     }
     // Reconcile collapse state. A remembered toggle (localStorage) wins over
     // the server-rendered default; otherwise the .sb-collapsed body class
-    // (set when sidebar_collapsed=True) governs.
+    // (set when Sidebar(collapsed=True)) governs.
     var storedCollapsed = localStorage.getItem("montin-sb-collapsed");
     if (storedCollapsed === "1") {
       document.documentElement.style.setProperty("--sidebar-width", "0px");

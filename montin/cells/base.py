@@ -161,7 +161,7 @@ class Cell(ABC):
                 deck = Deck(
                     title="cell",
                     plugins=[cls() for cls in plugin_registry().values()],
-                    show_sidebar=False,
+                    sidebar=False,
                     show_toolbar=False,
                 )
 

@@ -50,22 +50,22 @@
   </style>
 </head>
 <body
-  class="theme-{{ deck.theme }} {% if deck.size %}fixed-size {% endif %}{% if not deck.show_sidebar %}no-sidebar {% endif %}{% if not deck.show_toolbar %}no-toolbar {% endif %}{% if deck.show_sidebar and deck.sidebar_collapsed %}sb-collapsed{% endif %}"
-  data-sb-search-scope="{{ deck.sidebar_search_scope }}"
-  {% if deck.size %}
-  data-width="{{ deck.size[0] }}"
-  data-height="{{ deck.size[1] }}"
-  data-scale-up="{{ 'true' if deck.scale_up else 'false' }}"
-  data-keep-aspect="{{ 'true' if deck.keep_aspect_ratio else 'false' }}"
-  style="--stage-w: {{ deck.size[0] }}px; --stage-h: {{ deck.size[1] }}px;"
+  class="theme-{{ deck.theme }} {% if deck.stage %}fixed-size {% endif %}{% if not deck.sidebar.show %}no-sidebar {% endif %}{% if not deck.show_toolbar %}no-toolbar {% endif %}{% if deck.sidebar.show and deck.sidebar.collapsed %}sb-collapsed{% endif %}"
+  data-sb-search-scope="{{ deck.sidebar.search_scope }}"
+  {% if deck.stage %}
+  data-width="{{ deck.stage.size[0] }}"
+  data-height="{{ deck.stage.size[1] }}"
+  data-scale-up="{{ 'true' if deck.stage.scale_up else 'false' }}"
+  data-keep-aspect="{{ 'true' if deck.stage.keep_aspect_ratio else 'false' }}"
+  style="--stage-w: {{ deck.stage.size[0] }}px; --stage-h: {{ deck.stage.size[1] }}px;"
   {% endif %}
 >
 
-{% if deck.show_sidebar %}
+{% if deck.sidebar.show %}
 <!-- ===================== SIDEBAR ===================== -->
 <nav id="sidebar">
   <div id="sidebar-header">{% if theme_options %}{{ logo_group(theme_options.logos.sidebar) }}{% endif %}{{ deck.title }}</div>
-  {% if deck.sidebar_search %}
+  {% if deck.sidebar.search %}
   <div id="sidebar-search-wrap">
     <input id="sidebar-search" type="text" placeholder="Filter slides…"
            autocomplete="off" spellcheck="false"
@@ -80,7 +80,7 @@
     </div>
   </div>
   {% endif %}
-  {% if deck.sidebar_collapsible_sections %}
+  {% if deck.sidebar.collapsible_sections %}
   <div id="sidebar-fold-bar">
     <button type="button" title="Collapse all"       onclick="collapseAllSections()">&#8862;</button>
     <button type="button" title="Expand all"         onclick="expandAllSections()">&#8863;</button>
@@ -97,7 +97,7 @@
         data-level="{% if slide.slide_type == 'section' %}{{ slide.level }}{% else %}0{% endif %}"
         data-subtitle="{{ slide.subtitle }}"
         onclick='goToSlide({{ slide.slide_id | string | tojson }})'>
-      {% if slide.slide_type == 'section' and deck.sidebar_collapsible_sections %}
+      {% if slide.slide_type == 'section' and deck.sidebar.collapsible_sections %}
       <span class="sidebar-caret" onclick='toggleSection(event, {{ slide.slide_id | string | tojson }})'>&#9656;</span>
       {% else %}
       <span class="sidebar-caret-spacer"></span>
@@ -234,7 +234,7 @@
 <!-- ===================== BOTTOM TOOLBAR ===================== -->
 <footer id="toolbar">
   {% if theme_options %}{{ logo_group(theme_options.logos.toolbar) }}{% endif %}
-  {% if deck.show_sidebar %}
+  {% if deck.sidebar.show %}
   <button id="btn-sidebar" onclick="toggleSidebar()" title="Toggle sidebar (B)">&#9776;</button>
   {% endif %}
   <button id="btn-prev" onclick="navigate(-1)" title="Previous slide (←)">&#9664;</button>

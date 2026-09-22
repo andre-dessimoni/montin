@@ -17,7 +17,7 @@ Basic usage::
 from importlib.metadata import PackageNotFoundError, version
 
 from montin.cells import Cell
-from montin.core.deck import CellDefaults, Deck, SlideDefaults
+from montin.core.deck import CellDefaults, Deck, Sidebar, SlideDefaults, Stage
 from montin.core.slide import Slide
 from montin.core.plugins import (
     Highlight,
@@ -75,6 +75,8 @@ __all__ = [
     "Logo",
     "SlideDefaults",
     "CellDefaults",
+    "Stage",
+    "Sidebar",
     "MontinError",
     "CellPlacementError",
     "PluginNotDeclaredError",

@@ -255,21 +255,24 @@ def test_remove_slide_purges_section_from_toc():
 # Fixed-size (scaled stage) mode
 # ---------------------------------------------------------------------------
 
-def test_size_defaults_to_none():
+def test_stage_defaults_to_none():
     deck = Deck(title="X")
-    assert deck.size is None
-    assert deck.scale_up is False
-    assert deck.keep_aspect_ratio is True
+    assert deck.stage is None
 
 
-def test_size_stored():
-    deck = Deck(title="X", size=(1366, 768))
-    assert deck.size == (1366, 768)
+def test_stage_tuple_shorthand():
+    from montin import Stage
+    deck = Deck(title="X", stage=(1366, 768))
+    assert isinstance(deck.stage, Stage)
+    assert deck.stage.size == (1366, 768)
+    assert deck.stage.scale_up is False
+    assert deck.stage.keep_aspect_ratio is True
 
 
 def test_fixed_size_markup(tmp_path):
+    from montin import Stage
     deck = Deck(
-        title="X", size=(1280, 720), scale_up=True, keep_aspect_ratio=False
+        title="X", stage=Stage(size=(1280, 720), scale_up=True, keep_aspect_ratio=False)
     )
     deck.add_slide("S").add_text("hi")
     out = deck.write(tmp_path / "out")
@@ -295,7 +298,7 @@ def test_cover_centers_independent_of_flex_parent(tmp_path):
     # display:block), so cover centering must live on .slide-cover itself
     # (margin:auto), not on the parent's align/justify. Otherwise section/title
     # cover slides render top-left when `size=` is set.
-    deck = Deck(title="X", size=(1280, 720))
+    deck = Deck(title="X", stage=(1280, 720))
     deck.add_section("My Section")
     out = deck.write(tmp_path / "out")
     html = out.read_text(encoding="utf-8")
@@ -310,7 +313,7 @@ def test_cover_centers_independent_of_flex_parent(tmp_path):
 
 def test_chrome_defaults_true():
     deck = Deck(title="X")
-    assert deck.show_sidebar is True
+    assert deck.sidebar.show is True
     assert deck.show_toolbar is True
 
 
@@ -323,7 +326,7 @@ def test_default_renders_sidebar_and_toolbar(tmp_path):
 
 
 def test_no_sidebar(tmp_path):
-    deck = Deck(title="X", show_sidebar=False)
+    deck = Deck(title="X", sidebar=False)
     deck.add_slide("S").add_text("hi")
     html = deck.write(tmp_path / "out").read_text(encoding="utf-8")
     assert '<nav id="sidebar">' not in html
@@ -343,7 +346,7 @@ def test_no_toolbar(tmp_path):
 
 def test_single_slide_chromeless(tmp_path):
     deck = Deck(
-        title="X", show_sidebar=False, show_toolbar=False, size=(960, 540)
+        title="X", sidebar=False, show_toolbar=False, stage=(960, 540)
     )
     deck.add_slide("S").add_text("hi")
     html = deck.write(tmp_path / "out").read_text(encoding="utf-8")
@@ -353,7 +356,7 @@ def test_single_slide_chromeless(tmp_path):
 
 def test_sidebar_collapsed_default_false():
     deck = Deck(title="X")
-    assert deck.sidebar_collapsed is False
+    assert deck.sidebar.collapsed is False
 
 
 def _body_tag(html):
@@ -362,7 +365,8 @@ def _body_tag(html):
 
 
 def test_sidebar_collapsed_adds_body_class(tmp_path):
-    deck = Deck(title="X", sidebar_collapsed=True)
+    from montin import Sidebar
+    deck = Deck(title="X", sidebar=Sidebar(collapsed=True))
     deck.add_slide("S").add_text("hi")
     html = deck.write(tmp_path / "out").read_text(encoding="utf-8")
     assert "sb-collapsed" in _body_tag(html)
@@ -378,7 +382,8 @@ def test_sidebar_collapsed_default_no_class(tmp_path):
 
 
 def test_sidebar_collapsed_ignored_without_sidebar(tmp_path):
-    deck = Deck(title="X", sidebar_collapsed=True, show_sidebar=False)
+    from montin import Sidebar
+    deck = Deck(title="X", sidebar=Sidebar(collapsed=True, show=False))
     deck.add_slide("S").add_text("hi")
     html = deck.write(tmp_path / "out").read_text(encoding="utf-8")
     assert "sb-collapsed" not in _body_tag(html)

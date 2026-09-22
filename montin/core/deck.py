@@ -47,6 +47,67 @@ class SlideDefaults:
 
 
 @dataclass
+class Stage:
+    """Fixed-size "stage" configuration, passed as ``Deck(stage=...)``.
+
+    When set, slides become a fixed-size canvas that is scaled with a CSS
+    transform to fit the available area — every element (fonts, images,
+    layout) scales together, just like a static PDF. When ``Deck(stage=None)``
+    (the default) the layout is fluid and fills the window.
+
+    ``Deck(stage=(1366, 768))`` is accepted as a shorthand for
+    ``Deck(stage=Stage(size=(1366, 768)))``.
+
+    Attributes:
+        size: Slide dimensions in pixels, e.g. ``(1366, 768)``.
+        scale_up: Allow scaling beyond the native dimensions to fill larger
+            screens. When ``False`` (default) the stage never grows past 1:1 —
+            it only shrinks on smaller windows.
+        keep_aspect_ratio: When ``True`` (default) the stage scales uniformly
+            and is letterboxed. When ``False`` it stretches to fill both
+            dimensions independently (distorts content).
+    """
+
+    size:              tuple[int, int]
+    scale_up:          bool = False
+    keep_aspect_ratio: bool = True
+
+
+@dataclass
+class Sidebar:
+    """Slide-navigation sidebar configuration, passed as ``Deck(sidebar=...)``.
+
+    ``Deck(sidebar=False)`` is accepted as a shorthand for
+    ``Deck(sidebar=Sidebar(show=False))``.
+
+    Attributes:
+        show: Render the sidebar at all (default ``True``). ``False`` gives a
+            clean single-slide / embeddable file; the remaining options are
+            ignored.
+        collapsed: Start with the sidebar collapsed (default ``False``). It can
+            still be toggled open via the toolbar button or the ``B`` key. A
+            previously remembered toggle state (from ``localStorage``) takes
+            precedence over this default.
+        search: Render a regex search box at the top of the sidebar that
+            live-filters slides (default ``True``).
+        search_scope: What the search regex matches against (default
+            ``'title'``). ``'title'`` matches the sidebar title only;
+            ``'title_subtitle'`` also matches the slide subtitle; ``'content'``
+            searches the slide's full rendered text. Note: with ``'content'``,
+            Plotly/Mermaid bodies are not searchable until they have rendered
+            in the browser.
+        collapsible_sections: Show a caret on section items that folds/unfolds
+            the slides under that section (default ``True``).
+    """
+
+    show:                 bool = True
+    collapsed:            bool = False
+    search:               bool = True
+    search_scope:         Literal["title", "title_subtitle", "content"] = "title"
+    collapsible_sections: bool = True
+
+
+@dataclass
 class CellDefaults:
     """Visual and behaviour defaults applied to every ``add_*()`` cell method.
 
@@ -149,39 +210,16 @@ class Deck:
             slide change or cell change (default: 'slide').
             Use 'slide' on presentations with many cells to avoid excessive writes.
             Only relevant if autosave is set to a filename.
-        size (tuple[int, int] | None): Fixed slide dimensions in pixels, e.g.
-            ``(1366, 768)``. When set, slides become a fixed-size "stage" that is
-            scaled with a CSS transform to fit the available area — every element
-            (fonts, images, layout) scales together, just like a static PDF.
-            When ``None`` (default) the layout is fluid and fills the window
-            (current behaviour).
-        scale_up (bool): When ``size`` is set, allow scaling beyond the native
-            dimensions to fill larger screens. When ``False`` (default) the stage
-            never grows past 1:1 — it only shrinks on smaller windows.
-        keep_aspect_ratio (bool): When ``size`` is set and ``True`` (default), the
-            stage scales uniformly and is letterboxed. When ``False`` the stage
-            stretches to fill both dimensions independently (distorts content).
-        show_sidebar (bool): Render the slide-navigation sidebar (default
-            ``True``). Set to ``False`` for clean single-slide / embeddable files.
+        stage (Stage | tuple[int, int] | None): Fixed-size stage configuration —
+            see :class:`Stage`. A bare ``(width, height)`` tuple is shorthand for
+            ``Stage(size=(width, height))``. ``None`` (default) keeps the fluid
+            layout that fills the window.
+        sidebar (Sidebar | bool): Slide-navigation sidebar configuration — see
+            :class:`Sidebar`. ``True`` (default) renders it with default options;
+            ``False`` is shorthand for ``Sidebar(show=False)`` (clean
+            single-slide / embeddable files).
         show_toolbar (bool): Render the bottom navigation toolbar (default
             ``True``). Set to ``False`` for clean single-slide / embeddable files.
-        sidebar_collapsed (bool): Start with the sidebar collapsed (default
-            ``False``). The sidebar can still be toggled open via the toolbar
-            button or the ``B`` key. Ignored when ``show_sidebar`` is ``False``.
-            A previously remembered toggle state (from ``localStorage``) takes
-            precedence over this default.
-        sidebar_search (bool): Render a regex search box at the top of the sidebar
-            that live-filters slides (default ``True``). Ignored when
-            ``show_sidebar`` is ``False``.
-        sidebar_search_scope (Literal['title', 'title_subtitle', 'content']):
-            What the search regex matches against (default ``'title'``).
-            ``'title'`` matches the sidebar title only; ``'title_subtitle'`` also
-            matches the slide subtitle; ``'content'`` searches the slide's full
-            rendered text. Note: with ``'content'``, Plotly/Mermaid bodies are not
-            searchable until they have rendered in the browser.
-        sidebar_collapsible_sections (bool): Show a caret on section items that
-            folds/unfolds the slides under that section (default ``True``).
-            Ignored when ``show_sidebar`` is ``False``.
 
     Example::
 
@@ -216,15 +254,9 @@ class Deck:
         cell_defaults:  CellDefaults | None      = None,
         autosave:       str | None               = None,
         autosave_level: Literal['slide', 'cell'] = 'slide',
-        size:              tuple[int, int] | None = None,
-        scale_up:          bool                   = False,
-        keep_aspect_ratio: bool                   = True,
-        show_sidebar:      bool                   = True,
-        show_toolbar:      bool                   = True,
-        sidebar_collapsed: bool                   = False,
-        sidebar_search:    bool                   = True,
-        sidebar_search_scope: Literal['title', 'title_subtitle', 'content'] = 'title',
-        sidebar_collapsible_sections: bool        = True,
+        stage:          "Stage | tuple[int, int] | None" = None,
+        sidebar:        "Sidebar | bool"         = True,
+        show_toolbar:   bool                     = True,
         preview_height:    int | None             = None,
         contents_folder:   str | Path | None      = None,
         security:          Security | None         = None,
@@ -249,15 +281,15 @@ class Deck:
         self.cell_defaults  = cell_defaults if cell_defaults is not None else CellDefaults()
         self.autosave       = autosave
         self.autosave_level = autosave_level
-        self.size              = size
-        self.scale_up          = scale_up
-        self.keep_aspect_ratio = keep_aspect_ratio
-        self.show_sidebar      = show_sidebar
-        self.show_toolbar      = show_toolbar
-        self.sidebar_collapsed = sidebar_collapsed
-        self.sidebar_search        = sidebar_search
-        self.sidebar_search_scope  = sidebar_search_scope
-        self.sidebar_collapsible_sections = sidebar_collapsible_sections
+        # Normalise the shorthands: a bare (w, h) tuple for stage, a bool for
+        # sidebar. Copies keep a caller-shared instance from leaking mutations.
+        if stage is not None and not isinstance(stage, Stage):
+            stage = Stage(size=tuple(stage))
+        self.stage = copy.copy(stage) if stage is not None else None
+        if isinstance(sidebar, bool):
+            sidebar = Sidebar(show=sidebar)
+        self.sidebar = copy.copy(sidebar)
+        self.show_toolbar   = show_toolbar
         self.preview_height  = preview_height
         self.contents_folder = contents_folder
         self.security        = security or Security()
@@ -715,15 +747,12 @@ class Deck:
             "cell_defaults":  asdict(self.cell_defaults),
             "autosave":       self.autosave,
             "autosave_level": self.autosave_level,
-            "size":           list(self.size) if self.size is not None else None,
-            "scale_up":          self.scale_up,
-            "keep_aspect_ratio": self.keep_aspect_ratio,
-            "show_sidebar":      self.show_sidebar,
-            "show_toolbar":      self.show_toolbar,
-            "sidebar_collapsed": self.sidebar_collapsed,
-            "sidebar_search":        self.sidebar_search,
-            "sidebar_search_scope":  self.sidebar_search_scope,
-            "sidebar_collapsible_sections": self.sidebar_collapsible_sections,
+            "stage":          (
+                {**asdict(self.stage), "size": list(self.stage.size)}
+                if self.stage is not None else None
+            ),
+            "sidebar":        asdict(self.sidebar),
+            "show_toolbar":   self.show_toolbar,
             "preview_height":  self.preview_height,
             "contents_folder": contents_folder,
             "security":        asdict(self.security),
@@ -837,15 +866,12 @@ class Deck:
             cell_defaults  = CellDefaults(**cd) if cd else CellDefaults(),
             autosave       = data.get("autosave"),
             autosave_level = data.get("autosave_level", "slide"),
-            size           = tuple(data["size"]) if data.get("size") else None,
-            scale_up          = data.get("scale_up", False),
-            keep_aspect_ratio = data.get("keep_aspect_ratio", True),
-            show_sidebar      = data.get("show_sidebar", True),
-            show_toolbar      = data.get("show_toolbar", True),
-            sidebar_collapsed = data.get("sidebar_collapsed", False),
-            sidebar_search        = data.get("sidebar_search", True),
-            sidebar_search_scope  = data.get("sidebar_search_scope", "title"),
-            sidebar_collapsible_sections = data.get("sidebar_collapsible_sections", True),
+            stage          = (
+                Stage(**{**data["stage"], "size": tuple(data["stage"]["size"])})
+                if data.get("stage") else None
+            ),
+            sidebar        = Sidebar(**data["sidebar"]) if data.get("sidebar") else True,
+            show_toolbar   = data.get("show_toolbar", True),
             preview_height  = data.get("preview_height"),
             contents_folder = data.get("contents_folder"),
             security        = Security(**data["security"]) if data.get("security") else None,
@@ -922,10 +948,8 @@ class Deck:
             plugin_source=self.plugin_source,
             slide_defaults=self.slide_defaults,
             cell_defaults=self.cell_defaults,
-            size=self.size,
-            scale_up=self.scale_up,
-            keep_aspect_ratio=self.keep_aspect_ratio,
-            show_sidebar=False,
+            stage=self.stage,
+            sidebar=False,
             show_toolbar=False,
             preview_height=self.preview_height,
             contents_folder=self.contents_folder,

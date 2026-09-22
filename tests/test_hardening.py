@@ -2,6 +2,8 @@
 integrity / XSS), resilient rendering (strict=False), dynamic plugin
 declaration, isolated defaults, and preview/write idempotency."""
 
+import dataclasses
+
 import pytest
 
 from montin import CellDefaults, Deck, Plugins, SlideDefaults
@@ -125,8 +127,10 @@ def test_default_objects_are_not_shared_between_decks():
     d2 = Deck(title="B")
     d1.cell_defaults.fontscale = 9.9
     d1.slide_defaults.nrows = 7
+    d1.sidebar.collapsed = True
     assert d2.cell_defaults.fontscale == CellDefaults().fontscale
     assert d2.slide_defaults.nrows == SlideDefaults().nrows
+    assert Deck(title="C").sidebar.collapsed is False
 
 
 def test_plugin_instances_are_copied_per_deck():
@@ -155,3 +159,12 @@ def test_preview_then_write_still_saves_side_files(tmp_path):
     contents = out.parent / "_report_contents"
     saved = list(contents.glob("*.png")) if contents.exists() else []
     assert saved, "save_source side file must be written even after a preview"
+
+
+def test_dataclass_module_stays_documented():
+    # Guard: the grouped Deck options keep their user-facing docstrings.
+    from montin import Sidebar, Stage
+    for cls in (Stage, Sidebar):
+        assert cls.__doc__
+        for field in dataclasses.fields(cls):
+            assert field.name in cls.__doc__, f"{field.name} missing in {cls.__name__} doc"

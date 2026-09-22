@@ -28,6 +28,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   report. The default `strict=True` still raises.
 
 ### Changed
+- **`Stage` and `Sidebar` group the fixed-size and sidebar options of `Deck`.**
+  `size` / `scale_up` / `keep_aspect_ratio` became
+  `Deck(stage=Stage(size=…, scale_up=…, keep_aspect_ratio=…))` (or just
+  `stage=(w, h)`), and `show_sidebar` / `sidebar_collapsed` / `sidebar_search` /
+  `sidebar_search_scope` / `sidebar_collapsible_sections` became
+  `Deck(sidebar=Sidebar(show=…, collapsed=…, search=…, search_scope=…,
+  collapsible_sections=…))` (or `sidebar=False`). The old keyword arguments were
+  removed.
 - **The default theme now matches the documentation site** (a clean light look —
   white content, grey sidebar, blue links, Inter/Sora), equivalent to `"docs"`.
   The previous default (brand Sand) moved to `theme="montin"`.

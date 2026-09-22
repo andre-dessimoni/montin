@@ -2,7 +2,7 @@
 
 import pytest
 
-from montin import CellDefaults, Deck, Plugins, SlideDefaults
+from montin import CellDefaults, Deck, Plugins, Sidebar, SlideDefaults
 
 
 # ---------------------------------------------------------------------------
@@ -210,9 +210,9 @@ def test_plotly_cell_in_output(tmp_path):
 
 def test_sidebar_feature_defaults():
     deck = Deck(title="T")
-    assert deck.sidebar_search is True
-    assert deck.sidebar_search_scope == "title"
-    assert deck.sidebar_collapsible_sections is True
+    assert deck.sidebar.search is True
+    assert deck.sidebar.search_scope == "title"
+    assert deck.sidebar.collapsible_sections is True
 
 
 def test_sidebar_search_and_caret_in_output(tmp_path):
@@ -230,21 +230,21 @@ def test_sidebar_search_and_caret_in_output(tmp_path):
 
 
 def test_sidebar_search_scope_content(tmp_path):
-    deck = minimal_deck(sidebar_search_scope="content")
+    deck = minimal_deck(sidebar=Sidebar(search_scope="content"))
     deck.add_title("X")
     html = deck.write(tmp_path / "out", open_browser=False).read_text(encoding="utf-8")
     assert 'data-sb-search-scope="content"' in html
 
 
 def test_sidebar_search_disabled(tmp_path):
-    deck = minimal_deck(sidebar_search=False)
+    deck = minimal_deck(sidebar=Sidebar(search=False))
     deck.add_title("X")
     html = deck.write(tmp_path / "out", open_browser=False).read_text(encoding="utf-8")
     assert 'id="sidebar-search"' not in html
 
 
 def test_sidebar_collapsible_sections_disabled(tmp_path):
-    deck = minimal_deck(sidebar_collapsible_sections=False)
+    deck = minimal_deck(sidebar=Sidebar(collapsible_sections=False))
     deck.add_section("Intro")
     html = deck.write(tmp_path / "out", open_browser=False).read_text(encoding="utf-8")
     # The inline caret onclick must be gone (the JS function definition remains).
@@ -253,7 +253,7 @@ def test_sidebar_collapsible_sections_disabled(tmp_path):
 
 
 def test_sidebar_search_absent_when_no_sidebar(tmp_path):
-    deck = minimal_deck(show_sidebar=False)
+    deck = minimal_deck(sidebar=False)
     deck.add_title("X")
     html = deck.write(tmp_path / "out", open_browser=False).read_text(encoding="utf-8")
     assert 'id="sidebar-search"' not in html
@@ -270,7 +270,7 @@ def test_sidebar_regex_toggle_and_tooltip(tmp_path):
 
 
 def test_sidebar_regex_toggle_absent_when_search_off(tmp_path):
-    deck = minimal_deck(sidebar_search=False)
+    deck = minimal_deck(sidebar=Sidebar(search=False))
     deck.add_slide("Data", nrows=1, ncols=1).add_text("x")
     html = deck.write(tmp_path / "out", open_browser=False).read_text(encoding="utf-8")
     assert 'id="sidebar-regex-toggle"' not in html
@@ -289,7 +289,7 @@ def test_sidebar_fold_bar_present(tmp_path):
 
 
 def test_sidebar_fold_bar_absent_when_collapsible_off(tmp_path):
-    deck = minimal_deck(sidebar_collapsible_sections=False)
+    deck = minimal_deck(sidebar=Sidebar(collapsible_sections=False))
     deck.add_section("Intro")
     html = deck.write(tmp_path / "out", open_browser=False).read_text(encoding="utf-8")
     assert 'id="sidebar-fold-bar"' not in html
