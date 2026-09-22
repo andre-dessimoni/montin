@@ -114,11 +114,11 @@ class Cell(ABC):
             if src is not None:
                 deck = src._preview_clone([])
             else:
-                from montin.core.deck import Deck, Plugin
+                from montin.core.deck import Deck
+                from montin.core.plugins import plugin_registry
                 deck = Deck(
                     title="cell",
-                    plugins=[Plugin(n, "cdn") for n in
-                             ("plotly", "mermaid", "highlight", "mathjax")],
+                    plugins=[cls() for cls in plugin_registry().values()],
                     show_sidebar=False,
                     show_toolbar=False,
                 )

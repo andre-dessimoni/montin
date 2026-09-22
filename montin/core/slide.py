@@ -1029,15 +1029,11 @@ class Slide:
     # ------------------------------------------------------------------
 
     def _require_plugin(self, plugin_name: str, method_name: str) -> None:
+        from montin.core.plugins import plugin_registry
         from montin.exceptions import PluginNotDeclaredError
         if plugin_name not in self._plugin_names:
-            hint = {
-                "plotly":    "Plugins.Plotly()",
-                "mermaid":   "Plugins.Mermaid()",
-                "highlight": "Plugins.Highlight()",
-                "mathjax":   "Plugins.MathJax()",
-                "tabulator": "Plugins.Tabulator()",
-            }.get(plugin_name, f"the '{plugin_name}' plugin")
+            cls = plugin_registry().get(plugin_name)
+            hint = f"Plugins.{cls.__name__}()" if cls else f"the '{plugin_name}' plugin"
             raise PluginNotDeclaredError(
                 f"{method_name}() requires {hint}; declare it in "
                 f"Deck(plugins=[...])."

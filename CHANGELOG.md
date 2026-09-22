@@ -54,11 +54,19 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   rows when it does not fit the screen space, and sidebar hides it top title.
 - **Printing / PDF export**: The deck now prints (Ctrl+P / Save as PDF) with one
   slide per page and no sidebar or toolbar.
+- **Vendored plugin libraries are declared entirely in `manifest.json`**
+  (`assets`, `variants` and per-file `sri`). Adding a plugin now takes a `Plugin`
+  subclass plus a manifest entry — the resolver and `scripts/update_vendor.py`
+  need no changes.
 
 ### Fixed
 - `add_tabulator(selectable=…)` and `spreadsheet_mode=True` sent their range
   selection and clipboard options to Tabulator as one-element arrays (stray
   trailing commas), breaking them.
+- `Plugins.Tabulator(theme="auto")` now follows each theme's light/dark
+  declaration (the new `theme.json`) instead of hard-coded theme names: light
+  themes — including the new default — get the light table stylesheet, and
+  `ink` / `midnight` / `docs-dark` get the dark one.
 
 ## [0.5.0] - 2026-06-22
 

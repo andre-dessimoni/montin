@@ -54,45 +54,42 @@ def _download(url: str) -> bytes:
         return resp.read()
 
 
+def iter_vendored_files(entry: dict):
+    """Yield ``(url, filename)`` for every vendored file of one library entry.
+
+    Driven entirely by the entry's ``assets`` + ``variants`` declarations, so a
+    new plugin (or a new vendored variant) needs no change here. An asset with a
+    ``variant`` expands to one file per vendored value, mapped through the
+    variant's optional ``map`` to the upstream file base name.
+    """
+    version = entry["version"]
+    for asset in entry["assets"]:
+        var = asset.get("variant")
+        if var is None:
+            substitutions = [{}]
+        else:
+            spec = entry["variants"][var]
+            mapping = spec.get("map") or {}
+            substitutions = [{var: mapping.get(v, v)} for v in spec["values"]]
+        for subs in substitutions:
+            yield (asset["cdn"].format(version=version, **subs),
+                   asset["file"].format(**subs))
+
+
 def _code_jobs(manifest: dict) -> list[tuple[str, Path, list[str]]]:
     """Flatten the manifest into ``(url, dest, sri_path)`` library-file jobs.
 
     ``dest`` is the file's path inside its per-library subfolder (e.g.
     ``vendor/plotly/plotly.min.js``); the URL carries the pinned version.
-    ``sri_path`` is the nested manifest key path where the hash is stored.
+    ``sri_path`` is the manifest key path (``[name, "sri", filename]``) where
+    the hash is stored.
     """
     jobs: list[tuple[str, Path, list[str]]] = []
-
-    p = manifest["plotly"]
-    jobs.append((p["cdn"].format(version=p["version"]),
-                 VENDOR_DIR / "plotly" / p["js"], ["plotly", "sri"]))
-
-    m = manifest["mermaid"]
-    jobs.append((m["cdn"].format(version=m["version"]),
-                 VENDOR_DIR / "mermaid" / m["js"], ["mermaid", "sri"]))
-
-    h = manifest["highlight"]
-    jobs.append((h["cdn_js"].format(version=h["version"]),
-                 VENDOR_DIR / "highlight" / h["js"], ["highlight", "sri_js"]))
-    for style in h["vendored_styles"]:
-        url = h["cdn_css"].format(version=h["version"], style=style)
-        fname = h["css_file"].format(style=style)
-        jobs.append((url, VENDOR_DIR / "highlight" / fname, ["highlight", "sri_css", style]))
-
-    mj = manifest["mathjax"]
-    for output in mj["vendored_outputs"]:
-        url = mj["cdn"].format(version=mj["version"], output=output)
-        fname = mj["js"].format(output=output)
-        jobs.append((url, VENDOR_DIR / "mathjax" / fname, ["mathjax", "sri", output]))
-
-    t = manifest["tabulator"]
-    jobs.append((t["cdn_js"].format(version=t["version"]),
-                 VENDOR_DIR / "tabulator" / t["js"], ["tabulator", "sri_js"]))
-    for theme in t["vendored_themes"]:
-        url = t["cdn_css"].format(version=t["version"], theme=theme)
-        fname = t["css_file"].format(theme=theme)
-        jobs.append((url, VENDOR_DIR / "tabulator" / fname, ["tabulator", "sri_css", theme]))
-
+    for name, entry in manifest.items():
+        if not isinstance(entry, dict):
+            continue
+        for url, fname in iter_vendored_files(entry):
+            jobs.append((url, VENDOR_DIR / name / fname, [name, "sri", fname]))
     return jobs
 
 

@@ -1,5 +1,7 @@
 """Tests for plugin declaration and missing-plugin errors."""
 
+import pathlib
+
 import pytest
 
 from montin import Deck, Plugins
@@ -189,15 +191,21 @@ def test_tabulator_cdn_emits_css_and_js_with_sri():
 
 
 def test_tabulator_theme_auto_uses_deck_theme():
-    # default/dark decks -> dark sheet; light deck -> light sheet
-    (css_dark, _js) = resolve_plugin(
-        Plugins.Tabulator(), source="cdn", self_contained=True, sri=True,
-        deck_theme="dark")["assets"]
-    (css_light, _js2) = resolve_plugin(
-        Plugins.Tabulator(), source="cdn", self_contained=True, sri=True,
-        deck_theme="light")["assets"]
-    assert "tabulator_midnight.min.css" in css_dark["url"]
-    assert "css/tabulator.min.css" in css_light["url"]
+    # "auto" follows the theme's own theme.json metadata ({"dark": true|false}),
+    # not its name: every dark theme gets the midnight sheet, every light theme
+    # (whatever it is called) gets the light sheet.
+    def _auto_css(deck_theme):
+        return resolve_plugin(
+            Plugins.Tabulator(), source="cdn", self_contained=True, sri=True,
+            deck_theme=deck_theme)["assets"][0]
+
+    for theme in ("dark", "docs-dark", "ink", "midnight"):
+        assert "tabulator_midnight.min.css" in _auto_css(theme)["url"], theme
+    for theme in ("light", "default", "docs", "academic", "light-blue",
+                  "montin", "sobrio"):
+        assert "css/tabulator.min.css" in _auto_css(theme)["url"], theme
+    # An unknown/custom theme without theme.json defaults to the light sheet.
+    assert "css/tabulator.min.css" in _auto_css("my-custom-theme")["url"]
 
 
 def test_tabulator_theme_explicit_overrides_deck_theme():
@@ -260,23 +268,27 @@ def test_bundled_sidecar_writes_file(tmp_path):
 # ---------------------------------------------------------------------------
 
 def test_every_manifest_file_exists_on_disk():
+    # Driven by the same assets/variants declarations the resolver and the
+    # vendor updater use, so a new plugin or variant is covered automatically.
+    import importlib.util
     from montin.utils.vendor import vendor_dir
+    spec = importlib.util.spec_from_file_location(
+        "update_vendor",
+        pathlib.Path(__file__).resolve().parents[1] / "scripts" / "update_vendor.py",
+    )
+    update_vendor = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(spec and update_vendor)
     m = load_manifest()
     vdir = vendor_dir()
-    expected = [
-        ("plotly", m["plotly"]["js"]),
-        ("mermaid", m["mermaid"]["js"]),
-        ("highlight", m["highlight"]["js"]),
-        *(("highlight", m["highlight"]["css_file"].format(style=s))
-          for s in m["highlight"]["vendored_styles"]),
-        *(("mathjax", m["mathjax"]["js"].format(output=o))
-          for o in m["mathjax"]["vendored_outputs"]),
-        ("tabulator", m["tabulator"]["js"]),
-        *(("tabulator", m["tabulator"]["css_file"].format(theme=t))
-          for t in m["tabulator"]["vendored_themes"]),
-    ]
-    for lib, fname in expected:
-        assert (vdir / lib / fname).exists(), f"missing vendored file: {lib}/{fname}"
+    checked = 0
+    for lib, entry in m.items():
+        if not isinstance(entry, dict):
+            continue
+        for _url, fname in update_vendor.iter_vendored_files(entry):
+            assert (vdir / lib / fname).exists(), f"missing vendored file: {lib}/{fname}"
+            assert fname in entry["sri"], f"missing sri for: {lib}/{fname}"
+            checked += 1
+    assert checked >= 8   # sanity: the loop actually visited the bundles
 
 
 def test_every_library_ships_its_license():

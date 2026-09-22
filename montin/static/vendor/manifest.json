@@ -1,10 +1,17 @@
 {
-  "_comment": "Single source of truth for vendored plugin libraries. Each top-level key is a library; its files live in a subfolder of the same name (e.g. plotly/plotly.min.js) alongside its LICENSE file(s). Edit version pins / styles here, then run `python scripts/update_vendor.py` to download the code + licenses and refresh the `sri` hashes. Filenames are version-free (a bump overwrites in place); {version}/{style}/{output} are substituted at resolve time. See montin/utils/vendor.py.",
+  "_comment": "Single source of truth for vendored plugin libraries. Each top-level key is a library; its files live in a subfolder of the same name (e.g. plotly/plotly.min.js) alongside its LICENSE file(s). `assets` lists the files the report needs, in emit order; `{version}` and any `variants` variable are substituted at resolve time. A variant declares the values vendored for bundled mode (`values`, with `default` as the fallback) and an optional `map` from the montin-facing value to the upstream file base name. `sri` records each vendored file's hash keyed by filename. Edit version pins / variants here, then run `python scripts/update_vendor.py` to download the code + licenses and refresh the hashes. See montin/utils/vendor.py.",
   "plotly": {
     "version": "2.35.2",
-    "js": "plotly.min.js",
-    "cdn": "https://cdn.plot.ly/plotly-{version}.min.js",
-    "sri": "sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7",
+    "assets": [
+      {
+        "type": "js",
+        "file": "plotly.min.js",
+        "cdn": "https://cdn.plot.ly/plotly-{version}.min.js"
+      }
+    ],
+    "sri": {
+      "plotly.min.js": "sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7"
+    },
     "licenses": [
       {
         "file": "LICENSE",
@@ -18,9 +25,16 @@
   },
   "mermaid": {
     "version": "11.4.1",
-    "js": "mermaid.min.js",
-    "cdn": "https://cdn.jsdelivr.net/npm/mermaid@{version}/dist/mermaid.min.js",
-    "sri": "sha384-rbtjAdnIQE/aQJGEgXrVUlMibdfTSa4PQju4HDhN3sR2PmaKFzhEafuePsl9H/9I",
+    "assets": [
+      {
+        "type": "js",
+        "file": "mermaid.min.js",
+        "cdn": "https://cdn.jsdelivr.net/npm/mermaid@{version}/dist/mermaid.min.js"
+      }
+    ],
+    "sri": {
+      "mermaid.min.js": "sha384-rbtjAdnIQE/aQJGEgXrVUlMibdfTSa4PQju4HDhN3sR2PmaKFzhEafuePsl9H/9I"
+    },
     "licenses": [
       {
         "file": "LICENSE",
@@ -30,19 +44,29 @@
   },
   "highlight": {
     "version": "11.10.0",
-    "js": "highlight.min.js",
-    "cdn_js": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/{version}/highlight.min.js",
-    "sri_js": "sha384-GdEWAbCjn+ghjX0gLx7/N1hyTVmPAjdC2OvoAA0RyNcAOhqwtT8qnbCxWle2+uJX",
-    "default_style": "github-dark",
-    "css_file": "{style}.min.css",
-    "cdn_css": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/{version}/styles/{style}.min.css",
-    "vendored_styles": [
-      "github-dark",
-      "github"
+    "variants": {
+      "style": {
+        "values": ["github-dark", "github"],
+        "default": "github-dark"
+      }
+    },
+    "assets": [
+      {
+        "type": "css",
+        "file": "{style}.min.css",
+        "cdn": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/{version}/styles/{style}.min.css",
+        "variant": "style"
+      },
+      {
+        "type": "js",
+        "file": "highlight.min.js",
+        "cdn": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/{version}/highlight.min.js"
+      }
     ],
-    "sri_css": {
-      "github-dark": "sha384-wH75j6z1lH97ZOpMOInqhgKzFkAInZPPSPlZpYKYTOqsaizPvhQZmAtLcPKXpLyH",
-      "github": "sha384-eFTL69TLRZTkNfYZOLM+G04821K1qZao/4QLJbet1pP4tcF+fdXq/9CdqAbWRl/L"
+    "sri": {
+      "highlight.min.js": "sha384-GdEWAbCjn+ghjX0gLx7/N1hyTVmPAjdC2OvoAA0RyNcAOhqwtT8qnbCxWle2+uJX",
+      "github-dark.min.css": "sha384-wH75j6z1lH97ZOpMOInqhgKzFkAInZPPSPlZpYKYTOqsaizPvhQZmAtLcPKXpLyH",
+      "github.min.css": "sha384-eFTL69TLRZTkNfYZOLM+G04821K1qZao/4QLJbet1pP4tcF+fdXq/9CdqAbWRl/L"
     },
     "licenses": [
       {
@@ -53,14 +77,22 @@
   },
   "mathjax": {
     "version": "3.2.2",
-    "default_output": "svg",
-    "js": "tex-{output}.js",
-    "cdn": "https://cdn.jsdelivr.net/npm/mathjax@{version}/es5/tex-{output}.js",
-    "vendored_outputs": [
-      "svg"
+    "variants": {
+      "output": {
+        "values": ["svg"],
+        "default": "svg"
+      }
+    },
+    "assets": [
+      {
+        "type": "js",
+        "file": "tex-{output}.js",
+        "cdn": "https://cdn.jsdelivr.net/npm/mathjax@{version}/es5/tex-{output}.js",
+        "variant": "output"
+      }
     ],
     "sri": {
-      "svg": "sha384-KKWa9jJ1MZvssLeOoXG6FiOAZfAgmzsIIfw8BXwI9+kYm0lPCbC6yTQPBC00F1/L"
+      "tex-svg.js": "sha384-KKWa9jJ1MZvssLeOoXG6FiOAZfAgmzsIIfw8BXwI9+kYm0lPCbC6yTQPBC00F1/L"
     },
     "licenses": [
       {
@@ -71,23 +103,33 @@
   },
   "tabulator": {
     "version": "6.3.1",
-    "js": "tabulator.min.js",
-    "cdn_js": "https://cdn.jsdelivr.net/npm/tabulator-tables@{version}/dist/js/tabulator.min.js",
-    "sri_js": "sha384-SKSq3cuuVWdfrjtLz9wNlqE0bMc903yMS5zGnFtwvfddplgxa1hywtiLyw1CbSHO",
-    "default_theme": "dark",
-    "css_file": "{theme}.min.css",
-    "cdn_css": "https://cdn.jsdelivr.net/npm/tabulator-tables@{version}/dist/css/{theme}.min.css",
-    "vendored_themes": [
-      "tabulator",
-      "tabulator_midnight"
-    ],
-    "theme_map": {
-      "light": "tabulator",
-      "dark": "tabulator_midnight"
+    "variants": {
+      "theme": {
+        "values": ["light", "dark"],
+        "default": "dark",
+        "map": {
+          "light": "tabulator",
+          "dark": "tabulator_midnight"
+        }
+      }
     },
-    "sri_css": {
-      "tabulator": "sha384-p6hY5g6BjbrEVoCLwj4gZMkotMaHdQrPkd4S0vRpErDxL9/kvjyaUIq/S9RAPQfL",
-      "tabulator_midnight": "sha384-vBqRsRIPXb03PYCog2z5jjcEBrrvg3yilshFbdVOmFtVX27t9rYeO7lXit0xIcou"
+    "assets": [
+      {
+        "type": "css",
+        "file": "{theme}.min.css",
+        "cdn": "https://cdn.jsdelivr.net/npm/tabulator-tables@{version}/dist/css/{theme}.min.css",
+        "variant": "theme"
+      },
+      {
+        "type": "js",
+        "file": "tabulator.min.js",
+        "cdn": "https://cdn.jsdelivr.net/npm/tabulator-tables@{version}/dist/js/tabulator.min.js"
+      }
+    ],
+    "sri": {
+      "tabulator.min.css": "sha384-p6hY5g6BjbrEVoCLwj4gZMkotMaHdQrPkd4S0vRpErDxL9/kvjyaUIq/S9RAPQfL",
+      "tabulator_midnight.min.css": "sha384-vBqRsRIPXb03PYCog2z5jjcEBrrvg3yilshFbdVOmFtVX27t9rYeO7lXit0xIcou",
+      "tabulator.min.js": "sha384-SKSq3cuuVWdfrjtLz9wNlqE0bMc903yMS5zGnFtwvfddplgxa1hywtiLyw1CbSHO"
     },
     "licenses": [
       {

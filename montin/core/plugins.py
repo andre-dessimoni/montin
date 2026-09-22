@@ -23,7 +23,7 @@ sets the default for all of them via ``Deck(plugin_source=...)``.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import ClassVar, Literal
 
 
@@ -60,6 +60,25 @@ class Plugin:
         self.url = url
         return self
 
+    # -- hooks consumed by montin.utils.vendor.resolve_plugin ---------------
+
+    def template_vars(self, deck_theme: str | None = None) -> dict:
+        """Values substituted into the manifest's asset templates.
+
+        The default exposes every plugin-specific dataclass field (everything
+        beyond the shared ``source``/``version``/``url``), so e.g.
+        ``Highlight.style`` fills ``{style}``. Override to resolve values that
+        depend on the deck (see :meth:`Tabulator.template_vars`).
+        """
+        shared = {"source", "version", "url"}
+        return {f.name: getattr(self, f.name)
+                for f in fields(self) if f.name not in shared}
+
+    def init_options(self) -> dict:
+        """Options forwarded to the template as ``plugin_opts[name]`` (e.g. the
+        Mermaid theme passed to ``mermaid.initialize``). Default: none."""
+        return {}
+
 
 @dataclass
 class Plotly(Plugin):
@@ -80,6 +99,9 @@ class Mermaid(Plugin):
     theme: str = "dark"
 
     name: ClassVar[str] = "mermaid"
+
+    def init_options(self) -> dict:
+        return {"theme": self.theme}
 
 
 @dataclass
@@ -111,6 +133,9 @@ class MathJax(Plugin):
 
     name: ClassVar[str] = "mathjax"
 
+    def init_options(self) -> dict:
+        return {"output": self.output}
+
 
 @dataclass
 class Tabulator(Plugin):
@@ -118,13 +143,21 @@ class Tabulator(Plugin):
 
     Attributes:
         theme: which bundled stylesheet to use. ``"auto"`` (default) follows the
-            deck theme — the dark sheet for the ``default``/``dark`` themes, the
-            light sheet for ``light``. Force it with ``"light"`` / ``"dark"``.
+            deck theme's own light/dark declaration (each theme's ``theme.json``
+            metadata) — dark themes get the dark sheet, light themes the light
+            one. Force it with ``"light"`` / ``"dark"``.
     """
 
     theme: Literal["auto", "light", "dark"] = "auto"
 
     name: ClassVar[str] = "tabulator"
+
+    def template_vars(self, deck_theme: str | None = None) -> dict:
+        theme = self.theme
+        if theme == "auto":
+            from montin.utils.resource_loader import theme_is_dark
+            theme = "dark" if (deck_theme and theme_is_dark(deck_theme)) else "light"
+        return {"theme": theme}
 
 
 class Plugins:
@@ -138,3 +171,10 @@ class Plugins:
     Highlight = Highlight
     MathJax = MathJax
     Tabulator = Tabulator
+
+
+def plugin_registry() -> "dict[str, type[Plugin]]":
+    """Map each plugin ``name`` to its class, derived from the subclasses of
+    :class:`Plugin` — the single registry used by deserialisation and error
+    hints (no hand-maintained parallel lists)."""
+    return {cls.name: cls for cls in Plugin.__subclasses__() if cls.name}

@@ -640,17 +640,10 @@ class Deck:
 
     @staticmethod
     def _plugin_from_dict(data: dict) -> Plugin:
-        from montin.core.plugins import Plugins
+        from montin.core.plugins import plugin_registry
 
-        registry = {
-            "plotly":    Plugins.Plotly,
-            "mermaid":   Plugins.Mermaid,
-            "highlight": Plugins.Highlight,
-            "mathjax":   Plugins.MathJax,
-            "tabulator": Plugins.Tabulator,
-        }
         fields = dict(data)
-        target = registry.get(fields.pop("name", None), Plugin)
+        target = plugin_registry().get(fields.pop("name", None), Plugin)
         return target(**fields)
 
     def to_dict(self, embed: bool = True, *, slides: list[Slide] | None = None) -> dict:
