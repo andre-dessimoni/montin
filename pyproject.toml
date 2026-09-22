@@ -58,17 +58,23 @@ include = ["montin*"]
 "montin" = [
     "templates/*.html",
     "themes/**/*.css",
+    "themes/**/theme.json",
     "static/*.js",
     "static/js/*.js",
     "static/vendor/**/*",
     "py.typed",
 ]
-"montin.themes.default"    = ["*.css"]
-"montin.themes.light"      = ["*.css"]
-"montin.themes.dark"       = ["*.css"]
-"montin.themes.light-blue" = ["*.css"]
-"montin.themes.academic"   = ["*.css"]
-"montin.themes.sobrio"     = ["*.css"]
+"montin.themes.default"    = ["*.css", "theme.json"]
+"montin.themes.light"      = ["*.css", "theme.json"]
+"montin.themes.dark"       = ["*.css", "theme.json"]
+"montin.themes.light-blue" = ["*.css", "theme.json"]
+"montin.themes.academic"   = ["*.css", "theme.json"]
+"montin.themes.sobrio"     = ["*.css", "theme.json"]
+"montin.themes.docs"       = ["*.css", "theme.json"]
+"montin.themes.docs-dark"  = ["*.css", "theme.json"]
+"montin.themes.montin"     = ["*.css", "theme.json"]
+"montin.themes.ink"        = ["*.css", "theme.json"]
+"montin.themes.midnight"   = ["*.css", "theme.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -36,3 +36,22 @@ def get_available_themes() -> list:
         lambda f: f.is_dir() and not str(f.name).startswith('_'),
         Path(str(files("montin.themes"))).glob('*')
     ))
+
+
+def theme_is_dark(theme: str) -> bool:
+    """Whether ``theme`` declares itself dark in its ``theme.json`` metadata.
+
+    Every built-in theme ships a ``theme.json`` with ``{"dark": true|false}``.
+    A theme without the file (or with malformed JSON) is treated as light —
+    the majority case — so plugin stylesheets that follow the deck theme
+    (e.g. Tabulator's ``theme="auto"``) never key off hardcoded theme names.
+    """
+    import json
+
+    p = get_theme_file(theme, "theme.json")
+    if not p.exists():
+        return False
+    try:
+        return bool(json.loads(p.read_text(encoding="utf-8")).get("dark", False))
+    except (OSError, ValueError):
+        return False
