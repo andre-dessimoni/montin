@@ -268,16 +268,31 @@
      when the toolbar wraps onto additional rows on narrow screens. */
   --toolbar-row-height: 44px;
   --toolbar-height: 44px;
-  --color-bg: #1a1a2e;
-  --color-surface: #16213e;
-  --color-surface2: #0f3460;
-  --color-accent: #e94560;
-  --color-text: #eaeaea;
-  --color-text-muted: #8892a4;
-  --color-border: #2a2a4a;
+  /* Default look = the documentation-site light theme (the `docs` theme in
+     folder form). These seven colour variables are the reskin knobs — every
+     theme overrides them on top of this base (see the "montin", "ink",
+     "docs-dark" themes), or override inline via Deck(custom_css=...).
+     Values referenced from Furo's default light palette (MIT, © Pradyun Gedam).
+     The default-only bits (grey sidebar, Inter/Sora fonts, light code block)
+     are scoped to `.theme-default` further below and in slide.css / code.css. */
+  --color-bg: #ffffff;          /* content area                       */
+  --color-surface: #ffffff;     /* cards                              */
+  --color-surface2: #eef0f4;    /* hover, inputs, inline code         */
+  --color-accent: #2757dd;      /* links, active — Furo brand-content */
+  --color-text: #000000;        /* primary text                      */
+  --color-text-muted: #5a5c63;  /* secondary text                    */
+  --color-border: #e6e6e9;      /* hairlines, UI borders             */
+  /* Header ruler/accent colour — its own knob so ThemeOptions(header=...) can
+     recolour just the title without touching the whole accent. */
+  --header-color: var(--color-accent);
+  /* Gap between grid cells — a variable so ThemeOptions(cells=Cells(gap=...))
+     can override it. */
+  --cell-gap: 12px;
+  /* Base fonts stay neutral so themes that don't set their own (ink, midnight,
+     montin) keep them; the default theme swaps in Inter/Sora via .theme-default. */
   --font-sans: "Segoe UI", system-ui, sans-serif;
   --font-mono: "Fira Code", "Cascadia Code", monospace;
-  --radius: 6px;
+  --radius: 5px;
   /* Deck-wide font scaling: all font-sizes are rem (spacing/layout is px),
      so multiplying the root font-size scales every font and nothing else.
      Overridden on <html> by Deck(fontsize_scale=...). */
@@ -383,7 +398,9 @@ body.sb-no-transition #sidebar-resize-handle {
 #sidebar-search:focus { border-color: var(--color-accent); }
 #sidebar-search.sidebar-search-error {
   border-color: var(--color-accent);
-  background: rgba(233, 69, 96, 0.12);
+  /* Tint derived from whatever accent the active theme defines, so the error
+     state stays on-palette across themes instead of a fixed pink. */
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 /* Regex-mode toggle */
@@ -622,6 +639,9 @@ body.sb-collapsed {
   width: 100%;
   height: 100%;
   padding: 20px 24px 12px;
+  /* Positioning context for the ThemeOptions watermark overlay (fluid mode,
+     where .stage is display:contents). */
+  position: relative;
 }
 
 .slide.active {
@@ -663,6 +683,9 @@ body.sb-collapsed {
   padding: 20px 24px 12px;   /* matches the base .slide padding, scaled with the stage */
   transform: scale(var(--stage-sx, 1), var(--stage-sy, 1));
   transform-origin: top left;
+  /* Positioning context for the watermark overlay in fixed-size mode (here the
+     stage is the transformed box, so the overlay must anchor to it). */
+  position: relative;
 }
 
 .fixed-size #main.can-pan { cursor: grab; }
@@ -913,6 +936,100 @@ body.sb-collapsed {
 /* The print-only fallbacks (built on beforeprint) are hidden on screen. */
 .hs-print-table, .plotly-print { display: none; }
 
+/* ==================================================================
+   Default-look refinements — DEFAULT THEME ONLY
+   ------------------------------------------------------------------
+   default/ is the shared base loaded under every theme, so the bits
+   that are specific to the default look (and would otherwise leak onto
+   ink/midnight/montin/etc.) are scoped to `.theme-default` (the body
+   carries a `theme-<name>` class). This mirrors the `docs` theme —
+   the documentation-site light look. See also slide.css and code.css.
+   ================================================================== */
+
+/* Inter body / Sora headings, as on the docs site. Set on the body (not :root)
+   so only the default theme picks them up; the Sora heading rules live in
+   slide.css. Both fall back to the system stack when unavailable (offline-safe).
+   For pixel-exact fonts, prepend a Google Fonts @import via custom_css. */
+body.theme-default {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               Helvetica, Arial, sans-serif;
+  --font-mono: "SFMono-Regular", "Cascadia Code", "Fira Code", Consolas, monospace;
+}
+
+/* Furo's signature: a soft grey sidebar/toolbar framing the white content. */
+.theme-default #sidebar,
+.theme-default #toolbar {
+  background: #f8f9fb;
+}
+
+/* ==================================================================
+   ThemeOptions structural CSS — footer / watermark / logo.
+   These rules only take effect when the assembler renders the matching
+   elements (i.e. when Deck(theme_options=...) configures them); the
+   colours/sizes come from ThemeOptions.to_css(). Kept in the base so
+   every theme can use them.
+   ================================================================== */
+
+/* ---- Footer (theme_options.footer) — a strip at the bottom of a slide ---- */
+.slide-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+  font-size: calc(0.72rem * var(--deck-font-scale, 1));
+  color: var(--color-text-muted);
+}
+.slide-footer.footer-left   { justify-content: flex-start; }
+.slide-footer.footer-center { justify-content: center; }
+.slide-footer.footer-right  { justify-content: flex-end; }
+
+/* ---- Watermark (theme_options.watermark) — a faint overlay ---- */
+.slide-watermark {
+  position: absolute;
+  z-index: 50;               /* above content, but non-interactive */
+  pointer-events: none;
+  opacity: var(--wm-opacity, 0.08);
+  color: var(--wm-color, var(--color-text));
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  user-select: none;
+}
+.slide-watermark img { display: block; width: var(--wm-size, 200px); height: auto; }
+.slide-watermark.wm-text { font-size: var(--wm-size, 3rem); }
+
+.slide-watermark.wm-center       { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.slide-watermark.wm-top-left     { top: 24px; left: 28px; }
+.slide-watermark.wm-top-right    { top: 24px; right: 28px; }
+.slide-watermark.wm-bottom-left  { bottom: 24px; left: 28px; }
+.slide-watermark.wm-bottom-right { bottom: 24px; right: 28px; }
+/* Tiled — cover the slide with a repeating image (text falls back to centred). */
+.slide-watermark.wm-tiled {
+  inset: 0;
+  width: 100%; height: 100%;
+  background-image: var(--wm-tile, none);
+  background-repeat: repeat;
+  background-size: var(--wm-size, 200px);
+}
+
+/* ---- Logo (theme_options.logo) ---- */
+.deck-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.deck-logo img { display: block; height: var(--logo-height, 26px); width: auto; }
+#sidebar-header .deck-logo { max-width: 100%; }
+#toolbar .deck-logo { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
+.slide-header .deck-logo-header { float: right; margin-left: 12px; }
+.slide-cover .deck-logo-cover { margin-bottom: 8px; }
+
 /* --- light/layout.css --- */
 /* ============================================================
    light/layout.css — clean professional light theme
@@ -947,9 +1064,11 @@ body.sb-collapsed {
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--color-text);
-  border-bottom: 2px solid var(--color-accent);
+  border-bottom: 2px solid var(--header-color);
   padding-bottom: 6px;
-  display: inline-block;
+  /* Block so the accent underline spans the full header width (to the right
+     margin) rather than stopping at the text. */
+  display: block;
 }
 
 .slide-subtitle {
@@ -1026,7 +1145,7 @@ body.sb-collapsed {
 .slide-canvas {
   display: grid;
   flex: 1;
-  gap: 12px;
+  gap: var(--cell-gap, 12px);
   overflow: hidden;
 }
 
@@ -1065,6 +1184,26 @@ body.sb-collapsed {
   margin-top: 6px;
   font-style: italic;
   flex-shrink: 0;
+}
+
+/* ---- Error box for a cell that failed to render (write(strict=False)) ---- */
+.cell-error {
+  border: 1px dashed #ef4444;
+  background: color-mix(in srgb, #ef4444 6%, var(--color-surface));
+}
+
+.cell-error .cell-error-title {
+  color: #ef4444;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.cell-error .cell-error-detail {
+  font-family: var(--font-mono);
+  font-size: calc(0.72rem * var(--cell-font-scale, 1));
+  white-space: pre-wrap;
+  overflow: auto;
+  margin: 0;
 }
 
 /* ---- Botões de ação ---- */
@@ -1138,6 +1277,25 @@ body.sb-collapsed {
   padding-top: 6px;
   font-style: italic;
   flex-shrink: 0;
+}
+
+/* ==================================================================
+   Default-look refinements — DEFAULT THEME ONLY
+   Scoped to `.theme-default` so they stay off the other themes
+   (default/ is the shared base). See default/layout.css and code.css.
+   ================================================================== */
+
+/* Sora headings / Inter body, matching the documentation site. Sora falls back
+   to the sans stack (Inter, set in layout.css) when unavailable. */
+.theme-default .slide-title,
+.theme-default .slide-cover-title,
+.theme-default .slide-type-section .slide-cover-title,
+.theme-default .metric-value,
+.theme-default .markdown-body h1,
+.theme-default .markdown-body h2,
+.theme-default .markdown-body h3 {
+  font-family: "Sora", var(--font-sans);
+  font-weight: 600;
 }
 
 /* --- default/table.css --- */
@@ -1514,6 +1672,15 @@ body.sb-collapsed {
   padding: 1rem;
 }
 
+/* Default theme only: a light code surface (matching the docs site). The base
+   fallback above stays dark for the dark themes / montin; scoped to
+   `.theme-default` so it doesn't leak. */
+.theme-default .hs-pre code {
+  background: #f6f8fa;
+  color: #24292e;
+  border: 1px solid var(--color-border);
+}
+
 /* -- MermaidCell -- */
 .mermaid-body {
   display: flex;
@@ -1603,8 +1770,8 @@ body.sb-collapsed {
   margin-top: 4px;
 }
 
-.delta-positive { color: #4ade80; }   /* fallback if inline style absent */
-.delta-negative { color: #f87171; }
+.delta-positive { color: #16a34a; }   /* accessible green on the light Sand bg */
+.delta-negative { color: #dc2626; }   /* accessible red on the light Sand bg   */
 .delta-neutral  { color: var(--color-text-muted); }
 
 /* --- light/metric.css --- */
@@ -1623,7 +1790,7 @@ body.sb-collapsed {
   </style>
 </head>
 <body
-  class="fixed-size sb-collapsed"
+  class="theme-light fixed-size sb-collapsed"
   data-sb-search-scope="title"
   data-width="1280"
   data-height="720"
@@ -1660,7 +1827,7 @@ body.sb-collapsed {
         data-type="title"
         data-level="0"
         data-subtitle="Platform Engineering"
-        onclick="goToSlide('title')">
+        onclick='goToSlide("title")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">1</span>
       <span class="sidebar-title">Q3 Platform Report</span>
@@ -1670,7 +1837,7 @@ body.sb-collapsed {
         data-type="toc"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('toc')">
+        onclick='goToSlide("toc")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">2</span>
       <span class="sidebar-title">Table of Contents</span>
@@ -1680,8 +1847,8 @@ body.sb-collapsed {
         data-type="section"
         data-level="1"
         data-subtitle=""
-        onclick="goToSlide('section_lvl1a')">
-      <span class="sidebar-caret" onclick="toggleSection(event, 'section_lvl1a')">&#9656;</span>
+        onclick='goToSlide("section_lvl1a")'>
+      <span class="sidebar-caret" onclick='toggleSection(event, "section_lvl1a")'>&#9656;</span>
       <span class="sidebar-num">3</span>
       <span class="sidebar-title">Infrastructure</span>
     </li>
@@ -1690,8 +1857,8 @@ body.sb-collapsed {
         data-type="section"
         data-level="2"
         data-subtitle=""
-        onclick="goToSlide('section_lvl2aa')">
-      <span class="sidebar-caret" onclick="toggleSection(event, 'section_lvl2aa')">&#9656;</span>
+        onclick='goToSlide("section_lvl2aa")'>
+      <span class="sidebar-caret" onclick='toggleSection(event, "section_lvl2aa")'>&#9656;</span>
       <span class="sidebar-num">4</span>
       <span class="sidebar-title">Networking</span>
     </li>
@@ -1700,7 +1867,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('_slide-5')">
+        onclick='goToSlide("_slide-5")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">5</span>
       <span class="sidebar-title">Network overview</span>
@@ -1710,8 +1877,8 @@ body.sb-collapsed {
         data-type="section"
         data-level="2"
         data-subtitle=""
-        onclick="goToSlide('section_lvl2ab')">
-      <span class="sidebar-caret" onclick="toggleSection(event, 'section_lvl2ab')">&#9656;</span>
+        onclick='goToSlide("section_lvl2ab")'>
+      <span class="sidebar-caret" onclick='toggleSection(event, "section_lvl2ab")'>&#9656;</span>
       <span class="sidebar-num">6</span>
       <span class="sidebar-title">Storage</span>
     </li>
@@ -1720,7 +1887,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('_slide-7')">
+        onclick='goToSlide("_slide-7")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">7</span>
       <span class="sidebar-title">Storage capacity</span>
@@ -1730,8 +1897,8 @@ body.sb-collapsed {
         data-type="section"
         data-level="1"
         data-subtitle=""
-        onclick="goToSlide('section_lvl1b')">
-      <span class="sidebar-caret" onclick="toggleSection(event, 'section_lvl1b')">&#9656;</span>
+        onclick='goToSlide("section_lvl1b")'>
+      <span class="sidebar-caret" onclick='toggleSection(event, "section_lvl1b")'>&#9656;</span>
       <span class="sidebar-num">8</span>
       <span class="sidebar-title">Model Performance</span>
     </li>
@@ -1740,7 +1907,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('_slide-9')">
+        onclick='goToSlide("_slide-9")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">9</span>
       <span class="sidebar-title">Latency benchmarks</span>
@@ -1750,8 +1917,8 @@ body.sb-collapsed {
         data-type="section"
         data-level="1"
         data-subtitle=""
-        onclick="goToSlide('section_lvl3c')">
-      <span class="sidebar-caret" onclick="toggleSection(event, 'section_lvl3c')">&#9656;</span>
+        onclick='goToSlide("section_lvl3c")'>
+      <span class="sidebar-caret" onclick='toggleSection(event, "section_lvl3c")'>&#9656;</span>
       <span class="sidebar-num">10</span>
       <span class="sidebar-title">Appendix</span>
     </li>
@@ -1760,7 +1927,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('_slide-11')">
+        onclick='goToSlide("_slide-11")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">11</span>
       <span class="sidebar-title">Methodology</span>
@@ -1785,6 +1952,7 @@ body.sb-collapsed {
       <div class="slide-cover-meta">
 <span>A. Dessimoni</span><span>2025-06-01</span><span>v3.0</span>      </div>
     </div>
+    
     </div>
   </section>
 
@@ -1803,25 +1971,26 @@ body.sb-collapsed {
     <nav class="slide-toc-body">
       <div class="toc-entry toc-level-1">
         <a href="#section_lvl1a"
-           onclick="goToSlide('section_lvl1a'); return false;"
+           onclick='goToSlide("section_lvl1a"); return false;'
            class="toc-entry-link">Infrastructure</a>
       </div>
       <div class="toc-entry toc-level-2">
         <a href="#section_lvl2aa"
-           onclick="goToSlide('section_lvl2aa'); return false;"
+           onclick='goToSlide("section_lvl2aa"); return false;'
            class="toc-entry-link">Networking</a>
       </div>
       <div class="toc-entry toc-level-2">
         <a href="#section_lvl2ab"
-           onclick="goToSlide('section_lvl2ab'); return false;"
+           onclick='goToSlide("section_lvl2ab"); return false;'
            class="toc-entry-link">Storage</a>
       </div>
       <div class="toc-entry toc-level-1">
         <a href="#section_lvl1b"
-           onclick="goToSlide('section_lvl1b'); return false;"
+           onclick='goToSlide("section_lvl1b"); return false;'
            class="toc-entry-link">Model Performance</a>
       </div>
     </nav>
+    
     </div>
   </section>
 
@@ -1855,6 +2024,7 @@ body.sb-collapsed {
         </div>
       </nav>
     </div>
+    
     </div>
   </section>
 
@@ -1888,6 +2058,7 @@ body.sb-collapsed {
         </div>
       </nav>
     </div>
+    
     </div>
   </section>
 
@@ -1949,6 +2120,7 @@ body.sb-collapsed {
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -1981,6 +2153,7 @@ body.sb-collapsed {
         </div>
       </nav>
     </div>
+    
     </div>
   </section>
 
@@ -2038,6 +2211,7 @@ body.sb-collapsed {
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2070,6 +2244,7 @@ body.sb-collapsed {
         </div>
       </nav>
     </div>
+    
     </div>
   </section>
 
@@ -2157,6 +2332,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2171,6 +2347,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     <div class="slide-cover">
       <h1 class="slide-cover-title">Appendix</h1>
     </div>
+    
     </div>
   </section>
 
@@ -2215,6 +2392,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2242,47 +2420,47 @@ cell-overflow  cell-halign-left cell-valign-top"
 
 <!-- ===================== OVERVIEW ===================== -->
 <div id="overview" class="hidden">
-  <div class="overview-thumb" onclick="goToSlide('title'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("title"); toggleOverview()'>
     <span class="overview-num">1</span>
     <span class="overview-title">Q3 Platform Report</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('toc'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("toc"); toggleOverview()'>
     <span class="overview-num">2</span>
     <span class="overview-title">Table of Contents</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('section_lvl1a'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("section_lvl1a"); toggleOverview()'>
     <span class="overview-num">3</span>
     <span class="overview-title">Infrastructure</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('section_lvl2aa'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("section_lvl2aa"); toggleOverview()'>
     <span class="overview-num">4</span>
     <span class="overview-title">Networking</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('_slide-5'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("_slide-5"); toggleOverview()'>
     <span class="overview-num">5</span>
     <span class="overview-title">Network overview</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('section_lvl2ab'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("section_lvl2ab"); toggleOverview()'>
     <span class="overview-num">6</span>
     <span class="overview-title">Storage</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('_slide-7'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("_slide-7"); toggleOverview()'>
     <span class="overview-num">7</span>
     <span class="overview-title">Storage capacity</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('section_lvl1b'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("section_lvl1b"); toggleOverview()'>
     <span class="overview-num">8</span>
     <span class="overview-title">Model Performance</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('_slide-9'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("_slide-9"); toggleOverview()'>
     <span class="overview-num">9</span>
     <span class="overview-title">Latency benchmarks</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('section_lvl3c'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("section_lvl3c"); toggleOverview()'>
     <span class="overview-num">10</span>
     <span class="overview-title">Appendix</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('_slide-11'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("_slide-11"); toggleOverview()'>
     <span class="overview-num">11</span>
     <span class="overview-title">Methodology</span>
   </div>
@@ -3019,7 +3197,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     }
     // Reconcile collapse state. A remembered toggle (localStorage) wins over
     // the server-rendered default; otherwise the .sb-collapsed body class
-    // (set when sidebar_collapsed=True) governs.
+    // (set when Sidebar(collapsed=True)) governs.
     var storedCollapsed = localStorage.getItem("montin-sb-collapsed");
     if (storedCollapsed === "1") {
       document.documentElement.style.setProperty("--sidebar-width", "0px");
@@ -3484,7 +3662,8 @@ cell-overflow  cell-halign-left cell-valign-top"
     var containers = document.querySelectorAll(".plotly-container");
     containers.forEach(function(el) {
       try {
-        var raw = el.getAttribute("data-fig");
+        var figEl = el.querySelector('script[type="application/json"]');
+        var raw = figEl ? figEl.textContent : el.getAttribute("data-fig");
         if (!raw) return;
         var fig = JSON.parse(raw);
         var base = fig.layout || {};

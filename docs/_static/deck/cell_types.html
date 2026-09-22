@@ -7,7 +7,7 @@
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), usb=(), payment=(), interest-cohort=()">
   <meta name="author"  content="">
   <meta name="version" content="">
-  <meta name="date"    content="2026-06-28">
+  <meta name="date"    content="2026-09-21">
   <title>Cell types</title>
   <style>
 /* --- default/image.css --- */
@@ -268,16 +268,31 @@
      when the toolbar wraps onto additional rows on narrow screens. */
   --toolbar-row-height: 44px;
   --toolbar-height: 44px;
-  --color-bg: #1a1a2e;
-  --color-surface: #16213e;
-  --color-surface2: #0f3460;
-  --color-accent: #e94560;
-  --color-text: #eaeaea;
-  --color-text-muted: #8892a4;
-  --color-border: #2a2a4a;
+  /* Default look = the documentation-site light theme (the `docs` theme in
+     folder form). These seven colour variables are the reskin knobs — every
+     theme overrides them on top of this base (see the "montin", "ink",
+     "docs-dark" themes), or override inline via Deck(custom_css=...).
+     Values referenced from Furo's default light palette (MIT, © Pradyun Gedam).
+     The default-only bits (grey sidebar, Inter/Sora fonts, light code block)
+     are scoped to `.theme-default` further below and in slide.css / code.css. */
+  --color-bg: #ffffff;          /* content area                       */
+  --color-surface: #ffffff;     /* cards                              */
+  --color-surface2: #eef0f4;    /* hover, inputs, inline code         */
+  --color-accent: #2757dd;      /* links, active — Furo brand-content */
+  --color-text: #000000;        /* primary text                      */
+  --color-text-muted: #5a5c63;  /* secondary text                    */
+  --color-border: #e6e6e9;      /* hairlines, UI borders             */
+  /* Header ruler/accent colour — its own knob so ThemeOptions(header=...) can
+     recolour just the title without touching the whole accent. */
+  --header-color: var(--color-accent);
+  /* Gap between grid cells — a variable so ThemeOptions(cells=Cells(gap=...))
+     can override it. */
+  --cell-gap: 12px;
+  /* Base fonts stay neutral so themes that don't set their own (ink, midnight,
+     montin) keep them; the default theme swaps in Inter/Sora via .theme-default. */
   --font-sans: "Segoe UI", system-ui, sans-serif;
   --font-mono: "Fira Code", "Cascadia Code", monospace;
-  --radius: 6px;
+  --radius: 5px;
   /* Deck-wide font scaling: all font-sizes are rem (spacing/layout is px),
      so multiplying the root font-size scales every font and nothing else.
      Overridden on <html> by Deck(fontsize_scale=...). */
@@ -383,7 +398,9 @@ body.sb-no-transition #sidebar-resize-handle {
 #sidebar-search:focus { border-color: var(--color-accent); }
 #sidebar-search.sidebar-search-error {
   border-color: var(--color-accent);
-  background: rgba(233, 69, 96, 0.12);
+  /* Tint derived from whatever accent the active theme defines, so the error
+     state stays on-palette across themes instead of a fixed pink. */
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 /* Regex-mode toggle */
@@ -622,6 +639,9 @@ body.sb-collapsed {
   width: 100%;
   height: 100%;
   padding: 20px 24px 12px;
+  /* Positioning context for the ThemeOptions watermark overlay (fluid mode,
+     where .stage is display:contents). */
+  position: relative;
 }
 
 .slide.active {
@@ -663,6 +683,9 @@ body.sb-collapsed {
   padding: 20px 24px 12px;   /* matches the base .slide padding, scaled with the stage */
   transform: scale(var(--stage-sx, 1), var(--stage-sy, 1));
   transform-origin: top left;
+  /* Positioning context for the watermark overlay in fixed-size mode (here the
+     stage is the transformed box, so the overlay must anchor to it). */
+  position: relative;
 }
 
 .fixed-size #main.can-pan { cursor: grab; }
@@ -913,6 +936,100 @@ body.sb-collapsed {
 /* The print-only fallbacks (built on beforeprint) are hidden on screen. */
 .hs-print-table, .plotly-print { display: none; }
 
+/* ==================================================================
+   Default-look refinements — DEFAULT THEME ONLY
+   ------------------------------------------------------------------
+   default/ is the shared base loaded under every theme, so the bits
+   that are specific to the default look (and would otherwise leak onto
+   ink/midnight/montin/etc.) are scoped to `.theme-default` (the body
+   carries a `theme-<name>` class). This mirrors the `docs` theme —
+   the documentation-site light look. See also slide.css and code.css.
+   ================================================================== */
+
+/* Inter body / Sora headings, as on the docs site. Set on the body (not :root)
+   so only the default theme picks them up; the Sora heading rules live in
+   slide.css. Both fall back to the system stack when unavailable (offline-safe).
+   For pixel-exact fonts, prepend a Google Fonts @import via custom_css. */
+body.theme-default {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               Helvetica, Arial, sans-serif;
+  --font-mono: "SFMono-Regular", "Cascadia Code", "Fira Code", Consolas, monospace;
+}
+
+/* Furo's signature: a soft grey sidebar/toolbar framing the white content. */
+.theme-default #sidebar,
+.theme-default #toolbar {
+  background: #f8f9fb;
+}
+
+/* ==================================================================
+   ThemeOptions structural CSS — footer / watermark / logo.
+   These rules only take effect when the assembler renders the matching
+   elements (i.e. when Deck(theme_options=...) configures them); the
+   colours/sizes come from ThemeOptions.to_css(). Kept in the base so
+   every theme can use them.
+   ================================================================== */
+
+/* ---- Footer (theme_options.footer) — a strip at the bottom of a slide ---- */
+.slide-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border);
+  font-size: calc(0.72rem * var(--deck-font-scale, 1));
+  color: var(--color-text-muted);
+}
+.slide-footer.footer-left   { justify-content: flex-start; }
+.slide-footer.footer-center { justify-content: center; }
+.slide-footer.footer-right  { justify-content: flex-end; }
+
+/* ---- Watermark (theme_options.watermark) — a faint overlay ---- */
+.slide-watermark {
+  position: absolute;
+  z-index: 50;               /* above content, but non-interactive */
+  pointer-events: none;
+  opacity: var(--wm-opacity, 0.08);
+  color: var(--wm-color, var(--color-text));
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  user-select: none;
+}
+.slide-watermark img { display: block; width: var(--wm-size, 200px); height: auto; }
+.slide-watermark.wm-text { font-size: var(--wm-size, 3rem); }
+
+.slide-watermark.wm-center       { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.slide-watermark.wm-top-left     { top: 24px; left: 28px; }
+.slide-watermark.wm-top-right    { top: 24px; right: 28px; }
+.slide-watermark.wm-bottom-left  { bottom: 24px; left: 28px; }
+.slide-watermark.wm-bottom-right { bottom: 24px; right: 28px; }
+/* Tiled — cover the slide with a repeating image (text falls back to centred). */
+.slide-watermark.wm-tiled {
+  inset: 0;
+  width: 100%; height: 100%;
+  background-image: var(--wm-tile, none);
+  background-repeat: repeat;
+  background-size: var(--wm-size, 200px);
+}
+
+/* ---- Logo (theme_options.logo) ---- */
+.deck-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.deck-logo img { display: block; height: var(--logo-height, 26px); width: auto; }
+#sidebar-header .deck-logo { max-width: 100%; }
+#toolbar .deck-logo { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
+.slide-header .deck-logo-header { float: right; margin-left: 12px; }
+.slide-cover .deck-logo-cover { margin-bottom: 8px; }
+
 /* --- default/slide.css --- */
 /* ============================================================
    slide.css — slide, header, canvas e células
@@ -927,9 +1044,11 @@ body.sb-collapsed {
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--color-text);
-  border-bottom: 2px solid var(--color-accent);
+  border-bottom: 2px solid var(--header-color);
   padding-bottom: 6px;
-  display: inline-block;
+  /* Block so the accent underline spans the full header width (to the right
+     margin) rather than stopping at the text. */
+  display: block;
 }
 
 .slide-subtitle {
@@ -1006,7 +1125,7 @@ body.sb-collapsed {
 .slide-canvas {
   display: grid;
   flex: 1;
-  gap: 12px;
+  gap: var(--cell-gap, 12px);
   overflow: hidden;
 }
 
@@ -1045,6 +1164,26 @@ body.sb-collapsed {
   margin-top: 6px;
   font-style: italic;
   flex-shrink: 0;
+}
+
+/* ---- Error box for a cell that failed to render (write(strict=False)) ---- */
+.cell-error {
+  border: 1px dashed #ef4444;
+  background: color-mix(in srgb, #ef4444 6%, var(--color-surface));
+}
+
+.cell-error .cell-error-title {
+  color: #ef4444;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.cell-error .cell-error-detail {
+  font-family: var(--font-mono);
+  font-size: calc(0.72rem * var(--cell-font-scale, 1));
+  white-space: pre-wrap;
+  overflow: auto;
+  margin: 0;
 }
 
 /* ---- Botões de ação ---- */
@@ -1118,6 +1257,25 @@ body.sb-collapsed {
   padding-top: 6px;
   font-style: italic;
   flex-shrink: 0;
+}
+
+/* ==================================================================
+   Default-look refinements — DEFAULT THEME ONLY
+   Scoped to `.theme-default` so they stay off the other themes
+   (default/ is the shared base). See default/layout.css and code.css.
+   ================================================================== */
+
+/* Sora headings / Inter body, matching the documentation site. Sora falls back
+   to the sans stack (Inter, set in layout.css) when unavailable. */
+.theme-default .slide-title,
+.theme-default .slide-cover-title,
+.theme-default .slide-type-section .slide-cover-title,
+.theme-default .metric-value,
+.theme-default .markdown-body h1,
+.theme-default .markdown-body h2,
+.theme-default .markdown-body h3 {
+  font-family: "Sora", var(--font-sans);
+  font-weight: 600;
 }
 
 /* --- default/table.css --- */
@@ -1494,6 +1652,15 @@ body.sb-collapsed {
   padding: 1rem;
 }
 
+/* Default theme only: a light code surface (matching the docs site). The base
+   fallback above stays dark for the dark themes / montin; scoped to
+   `.theme-default` so it doesn't leak. */
+.theme-default .hs-pre code {
+  background: #f6f8fa;
+  color: #24292e;
+  border: 1px solid var(--color-border);
+}
+
 /* -- MermaidCell -- */
 .mermaid-body {
   display: flex;
@@ -1583,8 +1750,8 @@ body.sb-collapsed {
   margin-top: 4px;
 }
 
-.delta-positive { color: #4ade80; }   /* fallback if inline style absent */
-.delta-negative { color: #f87171; }
+.delta-positive { color: #16a34a; }   /* accessible green on the light Sand bg */
+.delta-negative { color: #dc2626; }   /* accessible red on the light Sand bg   */
 .delta-neutral  { color: var(--color-text-muted); }
 
 /* --- default/toolbar.css --- */
@@ -1595,7 +1762,7 @@ body.sb-collapsed {
   </style>
 </head>
 <body
-  class="fixed-size sb-collapsed"
+  class="theme-default fixed-size sb-collapsed"
   data-sb-search-scope="title"
   data-width="1280"
   data-height="720"
@@ -1632,7 +1799,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('text')">
+        onclick='goToSlide("text")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">1</span>
       <span class="sidebar-title">TextCell — add_text()</span>
@@ -1642,7 +1809,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('metric')">
+        onclick='goToSlide("metric")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">2</span>
       <span class="sidebar-title">MetricCell — add_metric()</span>
@@ -1652,7 +1819,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('table')">
+        onclick='goToSlide("table")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">3</span>
       <span class="sidebar-title">TableCell — add_table()</span>
@@ -1662,7 +1829,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('image')">
+        onclick='goToSlide("image")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">4</span>
       <span class="sidebar-title">ImageCell — add_image()</span>
@@ -1672,7 +1839,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('image-slider')">
+        onclick='goToSlide("image-slider")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">5</span>
       <span class="sidebar-title">ImageSliderCell — add_image_slider()</span>
@@ -1682,7 +1849,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('list')">
+        onclick='goToSlide("list")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">6</span>
       <span class="sidebar-title">ListCell — add_list()</span>
@@ -1692,7 +1859,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('code')">
+        onclick='goToSlide("code")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">7</span>
       <span class="sidebar-title">CodeCell — add_code()</span>
@@ -1702,7 +1869,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('plotly')">
+        onclick='goToSlide("plotly")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">8</span>
       <span class="sidebar-title">PlotlyCell — add_plotly()</span>
@@ -1712,7 +1879,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('mermaid')">
+        onclick='goToSlide("mermaid")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">9</span>
       <span class="sidebar-title">MermaidCell — add_mermaid()</span>
@@ -1722,7 +1889,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('html')">
+        onclick='goToSlide("html")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">10</span>
       <span class="sidebar-title">HtmlCell — add_html()</span>
@@ -1732,7 +1899,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('iframe')">
+        onclick='goToSlide("iframe")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">11</span>
       <span class="sidebar-title">IframeCell — add_iframe()</span>
@@ -1742,7 +1909,7 @@ body.sb-collapsed {
         data-type="slide"
         data-level="0"
         data-subtitle=""
-        onclick="goToSlide('empty')">
+        onclick='goToSlide("empty")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">12</span>
       <span class="sidebar-title">EmptyCell — add_empty()</span>
@@ -1803,6 +1970,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -1876,6 +2044,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -1947,6 +2116,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -1995,6 +2165,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2081,6 +2252,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2149,6 +2321,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2200,6 +2373,7 @@ if __name__ == &#39;__main__&#39;:
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2234,11 +2408,8 @@ if __name__ == &#39;__main__&#39;:
   "
 >
 
-  <div class="cell-body plotly-body" id="plotly-1-1">
-    <div
-      class="plotly-container"
-      data-fig="{&#34;data&#34;:[{&#34;hovertemplate&#34;:&#34;species=setosa\u003cbr\u003esepal_width=%{x}\u003cbr\u003esepal_length=%{y}\u003cextra\u003e\u003c\u002fextra\u003e&#34;,&#34;legendgroup&#34;:&#34;setosa&#34;,&#34;marker&#34;:{&#34;color&#34;:&#34;#636efa&#34;,&#34;symbol&#34;:&#34;circle&#34;},&#34;mode&#34;:&#34;markers&#34;,&#34;name&#34;:&#34;setosa&#34;,&#34;orientation&#34;:&#34;v&#34;,&#34;showlegend&#34;:true,&#34;x&#34;:{&#34;dtype&#34;:&#34;f8&#34;,&#34;bdata&#34;:&#34;AAAAAAAADEAAAAAAAAAIQJqZmZmZmQlAzczMzMzMCEDNzMzMzMwMQDMzMzMzMw9AMzMzMzMzC0AzMzMzMzMLQDMzMzMzMwdAzczMzMzMCECamZmZmZkNQDMzMzMzMwtAAAAAAAAACEAAAAAAAAAIQAAAAAAAABBAmpmZmZmZEUAzMzMzMzMPQAAAAAAAAAxAZmZmZmZmDkBmZmZmZmYOQDMzMzMzMwtAmpmZmZmZDUDNzMzMzMwMQGZmZmZmZgpAMzMzMzMzC0AAAAAAAAAIQDMzMzMzMwtAAAAAAAAADEAzMzMzMzMLQJqZmZmZmQlAzczMzMzMCEAzMzMzMzMLQGZmZmZmZhBAzczMzMzMEEDNzMzMzMwIQJqZmZmZmQlAAAAAAAAADEDNzMzMzMwIQAAAAAAAAAhAMzMzMzMzC0AAAAAAAAAMQGZmZmZmZgJAmpmZmZmZCUAAAAAAAAAMQGZmZmZmZg5AAAAAAAAACEBmZmZmZmYOQJqZmZmZmQlAmpmZmZmZDUBmZmZmZmYKQA==&#34;},&#34;xaxis&#34;:&#34;x&#34;,&#34;y&#34;:{&#34;dtype&#34;:&#34;f8&#34;,&#34;bdata&#34;:&#34;ZmZmZmZmFECamZmZmZkTQM3MzMzMzBJAZmZmZmZmEkAAAAAAAAAUQJqZmZmZmRVAZmZmZmZmEkAAAAAAAAAUQJqZmZmZmRFAmpmZmZmZE0CamZmZmZkVQDMzMzMzMxNAMzMzMzMzE0AzMzMzMzMRQDMzMzMzMxdAzczMzMzMFkCamZmZmZkVQGZmZmZmZhRAzczMzMzMFkBmZmZmZmYUQJqZmZmZmRVAZmZmZmZmFEBmZmZmZmYSQGZmZmZmZhRAMzMzMzMzE0AAAAAAAAAUQAAAAAAAABRAzczMzMzMFEDNzMzMzMwUQM3MzMzMzBJAMzMzMzMzE0CamZmZmZkVQM3MzMzMzBRAAAAAAAAAFkCamZmZmZkTQAAAAAAAABRAAAAAAAAAFkCamZmZmZkTQJqZmZmZmRFAZmZmZmZmFEAAAAAAAAAUQAAAAAAAABJAmpmZmZmZEUAAAAAAAAAUQGZmZmZmZhRAMzMzMzMzE0BmZmZmZmYUQGZmZmZmZhJAMzMzMzMzFUAAAAAAAAAUQA==&#34;},&#34;yaxis&#34;:&#34;y&#34;,&#34;type&#34;:&#34;scatter&#34;},{&#34;hovertemplate&#34;:&#34;species=versicolor\u003cbr\u003esepal_width=%{x}\u003cbr\u003esepal_length=%{y}\u003cextra\u003e\u003c\u002fextra\u003e&#34;,&#34;legendgroup&#34;:&#34;versicolor&#34;,&#34;marker&#34;:{&#34;color&#34;:&#34;#EF553B&#34;,&#34;symbol&#34;:&#34;circle&#34;},&#34;mode&#34;:&#34;markers&#34;,&#34;name&#34;:&#34;versicolor&#34;,&#34;orientation&#34;:&#34;v&#34;,&#34;showlegend&#34;:true,&#34;x&#34;:{&#34;dtype&#34;:&#34;f8&#34;,&#34;bdata&#34;:&#34;mpmZmZmZCUCamZmZmZkJQM3MzMzMzAhAZmZmZmZmAkBmZmZmZmYGQGZmZmZmZgZAZmZmZmZmCkAzMzMzMzMDQDMzMzMzMwdAmpmZmZmZBUAAAAAAAAAAQAAAAAAAAAhAmpmZmZmZAUAzMzMzMzMHQDMzMzMzMwdAzczMzMzMCEAAAAAAAAAIQJqZmZmZmQVAmpmZmZmZAUAAAAAAAAAEQJqZmZmZmQlAZmZmZmZmBkAAAAAAAAAEQGZmZmZmZgZAMzMzMzMzB0AAAAAAAAAIQGZmZmZmZgZAAAAAAAAACEAzMzMzMzMHQM3MzMzMzARAMzMzMzMzA0AzMzMzMzMDQJqZmZmZmQVAmpmZmZmZBUAAAAAAAAAIQDMzMzMzMwtAzczMzMzMCEBmZmZmZmYCQAAAAAAAAAhAAAAAAAAABEDNzMzMzMwEQAAAAAAAAAhAzczMzMzMBEBmZmZmZmYCQJqZmZmZmQVAAAAAAAAACEAzMzMzMzMHQDMzMzMzMwdAAAAAAAAABEBmZmZmZmYGQA==&#34;},&#34;xaxis&#34;:&#34;x&#34;,&#34;y&#34;:{&#34;dtype&#34;:&#34;f8&#34;,&#34;bdata&#34;:&#34;AAAAAAAAHECamZmZmZkZQJqZmZmZmRtAAAAAAAAAFkAAAAAAAAAaQM3MzMzMzBZAMzMzMzMzGUCamZmZmZkTQGZmZmZmZhpAzczMzMzMFEAAAAAAAAAUQJqZmZmZmRdAAAAAAAAAGEBmZmZmZmYYQGZmZmZmZhZAzczMzMzMGkBmZmZmZmYWQDMzMzMzMxdAzczMzMzMGEBmZmZmZmYWQJqZmZmZmRdAZmZmZmZmGEAzMzMzMzMZQGZmZmZmZhhAmpmZmZmZGUBmZmZmZmYaQDMzMzMzMxtAzczMzMzMGkAAAAAAAAAYQM3MzMzMzBZAAAAAAAAAFkAAAAAAAAAWQDMzMzMzMxdAAAAAAAAAGECamZmZmZkVQAAAAAAAABhAzczMzMzMGkAzMzMzMzMZQGZmZmZmZhZAAAAAAAAAFkAAAAAAAAAWQGZmZmZmZhhAMzMzMzMzF0AAAAAAAAAUQGZmZmZmZhZAzczMzMzMFkDNzMzMzMwWQM3MzMzMzBhAZmZmZmZmFEDNzMzMzMwWQA==&#34;},&#34;yaxis&#34;:&#34;y&#34;,&#34;type&#34;:&#34;scatter&#34;},{&#34;hovertemplate&#34;:&#34;species=virginica\u003cbr\u003esepal_width=%{x}\u003cbr\u003esepal_length=%{y}\u003cextra\u003e\u003c\u002fextra\u003e&#34;,&#34;legendgroup&#34;:&#34;virginica&#34;,&#34;marker&#34;:{&#34;color&#34;:&#34;#00cc96&#34;,&#34;symbol&#34;:&#34;circle&#34;},&#34;mode&#34;:&#34;markers&#34;,&#34;name&#34;:&#34;virginica&#34;,&#34;orientation&#34;:&#34;v&#34;,&#34;showlegend&#34;:true,&#34;x&#34;:{&#34;dtype&#34;:&#34;f8&#34;,&#34;bdata&#34;:&#34;ZmZmZmZmCkCamZmZmZkFQAAAAAAAAAhAMzMzMzMzB0AAAAAAAAAIQAAAAAAAAAhAAAAAAAAABEAzMzMzMzMHQAAAAAAAAARAzczMzMzMDECamZmZmZkJQJqZmZmZmQVAAAAAAAAACEAAAAAAAAAEQGZmZmZmZgZAmpmZmZmZCUAAAAAAAAAIQGZmZmZmZg5AzczMzMzMBECamZmZmZkBQJqZmZmZmQlAZmZmZmZmBkBmZmZmZmYGQJqZmZmZmQVAZmZmZmZmCkCamZmZmZkJQGZmZmZmZgZAAAAAAAAACEBmZmZmZmYGQAAAAAAAAAhAZmZmZmZmBkBmZmZmZmYOQGZmZmZmZgZAZmZmZmZmBkDNzMzMzMwEQAAAAAAAAAhAMzMzMzMzC0DNzMzMzMwIQAAAAAAAAAhAzczMzMzMCEDNzMzMzMwIQM3MzMzMzAhAmpmZmZmZBUCamZmZmZkJQGZmZmZmZgpAAAAAAAAACEAAAAAAAAAEQAAAAAAAAAhAMzMzMzMzC0AAAAAAAAAIQA==&#34;},&#34;xaxis&#34;:&#34;x&#34;,&#34;y&#34;:{&#34;dtype&#34;:&#34;f8&#34;,&#34;bdata&#34;:&#34;MzMzMzMzGUAzMzMzMzMXQGZmZmZmZhxAMzMzMzMzGUAAAAAAAAAaQGZmZmZmZh5AmpmZmZmZE0AzMzMzMzMdQM3MzMzMzBpAzczMzMzMHEAAAAAAAAAaQJqZmZmZmRlAMzMzMzMzG0DNzMzMzMwWQDMzMzMzMxdAmpmZmZmZGUAAAAAAAAAaQM3MzMzMzB5AzczMzMzMHkAAAAAAAAAYQJqZmZmZmRtAZmZmZmZmFkDNzMzMzMweQDMzMzMzMxlAzczMzMzMGkDNzMzMzMwcQM3MzMzMzBhAZmZmZmZmGECamZmZmZkZQM3MzMzMzBxAmpmZmZmZHUCamZmZmZkfQJqZmZmZmRlAMzMzMzMzGUBmZmZmZmYYQM3MzMzMzB5AMzMzMzMzGUCamZmZmZkZQAAAAAAAABhAmpmZmZmZG0DNzMzMzMwaQJqZmZmZmRtAMzMzMzMzF0AzMzMzMzMbQM3MzMzMzBpAzczMzMzMGkAzMzMzMzMZQAAAAAAAABpAzczMzMzMGECamZmZmZkXQA==&#34;},&#34;yaxis&#34;:&#34;y&#34;,&#34;type&#34;:&#34;scatter&#34;}],&#34;layout&#34;:{&#34;template&#34;:{&#34;data&#34;:{&#34;histogram2dcontour&#34;:[{&#34;type&#34;:&#34;histogram2dcontour&#34;,&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;},&#34;colorscale&#34;:[[0.0,&#34;#0d0887&#34;],[0.1111111111111111,&#34;#46039f&#34;],[0.2222222222222222,&#34;#7201a8&#34;],[0.3333333333333333,&#34;#9c179e&#34;],[0.4444444444444444,&#34;#bd3786&#34;],[0.5555555555555556,&#34;#d8576b&#34;],[0.6666666666666666,&#34;#ed7953&#34;],[0.7777777777777778,&#34;#fb9f3a&#34;],[0.8888888888888888,&#34;#fdca26&#34;],[1.0,&#34;#f0f921&#34;]]}],&#34;choropleth&#34;:[{&#34;type&#34;:&#34;choropleth&#34;,&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}],&#34;histogram2d&#34;:[{&#34;type&#34;:&#34;histogram2d&#34;,&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;},&#34;colorscale&#34;:[[0.0,&#34;#0d0887&#34;],[0.1111111111111111,&#34;#46039f&#34;],[0.2222222222222222,&#34;#7201a8&#34;],[0.3333333333333333,&#34;#9c179e&#34;],[0.4444444444444444,&#34;#bd3786&#34;],[0.5555555555555556,&#34;#d8576b&#34;],[0.6666666666666666,&#34;#ed7953&#34;],[0.7777777777777778,&#34;#fb9f3a&#34;],[0.8888888888888888,&#34;#fdca26&#34;],[1.0,&#34;#f0f921&#34;]]}],&#34;heatmap&#34;:[{&#34;type&#34;:&#34;heatmap&#34;,&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;},&#34;colorscale&#34;:[[0.0,&#34;#0d0887&#34;],[0.1111111111111111,&#34;#46039f&#34;],[0.2222222222222222,&#34;#7201a8&#34;],[0.3333333333333333,&#34;#9c179e&#34;],[0.4444444444444444,&#34;#bd3786&#34;],[0.5555555555555556,&#34;#d8576b&#34;],[0.6666666666666666,&#34;#ed7953&#34;],[0.7777777777777778,&#34;#fb9f3a&#34;],[0.8888888888888888,&#34;#fdca26&#34;],[1.0,&#34;#f0f921&#34;]]}],&#34;contourcarpet&#34;:[{&#34;type&#34;:&#34;contourcarpet&#34;,&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}],&#34;contour&#34;:[{&#34;type&#34;:&#34;contour&#34;,&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;},&#34;colorscale&#34;:[[0.0,&#34;#0d0887&#34;],[0.1111111111111111,&#34;#46039f&#34;],[0.2222222222222222,&#34;#7201a8&#34;],[0.3333333333333333,&#34;#9c179e&#34;],[0.4444444444444444,&#34;#bd3786&#34;],[0.5555555555555556,&#34;#d8576b&#34;],[0.6666666666666666,&#34;#ed7953&#34;],[0.7777777777777778,&#34;#fb9f3a&#34;],[0.8888888888888888,&#34;#fdca26&#34;],[1.0,&#34;#f0f921&#34;]]}],&#34;surface&#34;:[{&#34;type&#34;:&#34;surface&#34;,&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;},&#34;colorscale&#34;:[[0.0,&#34;#0d0887&#34;],[0.1111111111111111,&#34;#46039f&#34;],[0.2222222222222222,&#34;#7201a8&#34;],[0.3333333333333333,&#34;#9c179e&#34;],[0.4444444444444444,&#34;#bd3786&#34;],[0.5555555555555556,&#34;#d8576b&#34;],[0.6666666666666666,&#34;#ed7953&#34;],[0.7777777777777778,&#34;#fb9f3a&#34;],[0.8888888888888888,&#34;#fdca26&#34;],[1.0,&#34;#f0f921&#34;]]}],&#34;mesh3d&#34;:[{&#34;type&#34;:&#34;mesh3d&#34;,&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}],&#34;scatter&#34;:[{&#34;fillpattern&#34;:{&#34;fillmode&#34;:&#34;overlay&#34;,&#34;size&#34;:10,&#34;solidity&#34;:0.2},&#34;type&#34;:&#34;scatter&#34;}],&#34;parcoords&#34;:[{&#34;type&#34;:&#34;parcoords&#34;,&#34;line&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}}],&#34;scatterpolargl&#34;:[{&#34;type&#34;:&#34;scatterpolargl&#34;,&#34;marker&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}}],&#34;bar&#34;:[{&#34;error_x&#34;:{&#34;color&#34;:&#34;#2a3f5f&#34;},&#34;error_y&#34;:{&#34;color&#34;:&#34;#2a3f5f&#34;},&#34;marker&#34;:{&#34;line&#34;:{&#34;color&#34;:&#34;#E5ECF6&#34;,&#34;width&#34;:0.5},&#34;pattern&#34;:{&#34;fillmode&#34;:&#34;overlay&#34;,&#34;size&#34;:10,&#34;solidity&#34;:0.2}},&#34;type&#34;:&#34;bar&#34;}],&#34;scattergeo&#34;:[{&#34;type&#34;:&#34;scattergeo&#34;,&#34;marker&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}}],&#34;scatterpolar&#34;:[{&#34;type&#34;:&#34;scatterpolar&#34;,&#34;marker&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}}],&#34;histogram&#34;:[{&#34;marker&#34;:{&#34;pattern&#34;:{&#34;fillmode&#34;:&#34;overlay&#34;,&#34;size&#34;:10,&#34;solidity&#34;:0.2}},&#34;type&#34;:&#34;histogram&#34;}],&#34;scattergl&#34;:[{&#34;type&#34;:&#34;scattergl&#34;,&#34;marker&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}}],&#34;scatter3d&#34;:[{&#34;type&#34;:&#34;scatter3d&#34;,&#34;line&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}},&#34;marker&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}}],&#34;scattermap&#34;:[{&#34;type&#34;:&#34;scattermap&#34;,&#34;marker&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}}],&#34;scattermapbox&#34;:[{&#34;type&#34;:&#34;scattermapbox&#34;,&#34;marker&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}}],&#34;scatterternary&#34;:[{&#34;type&#34;:&#34;scatterternary&#34;,&#34;marker&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}}],&#34;scattercarpet&#34;:[{&#34;type&#34;:&#34;scattercarpet&#34;,&#34;marker&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}}}],&#34;carpet&#34;:[{&#34;aaxis&#34;:{&#34;endlinecolor&#34;:&#34;#2a3f5f&#34;,&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;minorgridcolor&#34;:&#34;white&#34;,&#34;startlinecolor&#34;:&#34;#2a3f5f&#34;},&#34;baxis&#34;:{&#34;endlinecolor&#34;:&#34;#2a3f5f&#34;,&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;minorgridcolor&#34;:&#34;white&#34;,&#34;startlinecolor&#34;:&#34;#2a3f5f&#34;},&#34;type&#34;:&#34;carpet&#34;}],&#34;table&#34;:[{&#34;cells&#34;:{&#34;fill&#34;:{&#34;color&#34;:&#34;#EBF0F8&#34;},&#34;line&#34;:{&#34;color&#34;:&#34;white&#34;}},&#34;header&#34;:{&#34;fill&#34;:{&#34;color&#34;:&#34;#C8D4E3&#34;},&#34;line&#34;:{&#34;color&#34;:&#34;white&#34;}},&#34;type&#34;:&#34;table&#34;}],&#34;barpolar&#34;:[{&#34;marker&#34;:{&#34;line&#34;:{&#34;color&#34;:&#34;#E5ECF6&#34;,&#34;width&#34;:0.5},&#34;pattern&#34;:{&#34;fillmode&#34;:&#34;overlay&#34;,&#34;size&#34;:10,&#34;solidity&#34;:0.2}},&#34;type&#34;:&#34;barpolar&#34;}],&#34;pie&#34;:[{&#34;automargin&#34;:true,&#34;type&#34;:&#34;pie&#34;}]},&#34;layout&#34;:{&#34;autotypenumbers&#34;:&#34;strict&#34;,&#34;colorway&#34;:[&#34;#636efa&#34;,&#34;#EF553B&#34;,&#34;#00cc96&#34;,&#34;#ab63fa&#34;,&#34;#FFA15A&#34;,&#34;#19d3f3&#34;,&#34;#FF6692&#34;,&#34;#B6E880&#34;,&#34;#FF97FF&#34;,&#34;#FECB52&#34;],&#34;font&#34;:{&#34;color&#34;:&#34;#2a3f5f&#34;},&#34;hovermode&#34;:&#34;closest&#34;,&#34;hoverlabel&#34;:{&#34;align&#34;:&#34;left&#34;},&#34;paper_bgcolor&#34;:&#34;white&#34;,&#34;plot_bgcolor&#34;:&#34;#E5ECF6&#34;,&#34;polar&#34;:{&#34;bgcolor&#34;:&#34;#E5ECF6&#34;,&#34;angularaxis&#34;:{&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;ticks&#34;:&#34;&#34;},&#34;radialaxis&#34;:{&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;ticks&#34;:&#34;&#34;}},&#34;ternary&#34;:{&#34;bgcolor&#34;:&#34;#E5ECF6&#34;,&#34;aaxis&#34;:{&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;ticks&#34;:&#34;&#34;},&#34;baxis&#34;:{&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;ticks&#34;:&#34;&#34;},&#34;caxis&#34;:{&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;ticks&#34;:&#34;&#34;}},&#34;coloraxis&#34;:{&#34;colorbar&#34;:{&#34;outlinewidth&#34;:0,&#34;ticks&#34;:&#34;&#34;}},&#34;colorscale&#34;:{&#34;sequential&#34;:[[0.0,&#34;#0d0887&#34;],[0.1111111111111111,&#34;#46039f&#34;],[0.2222222222222222,&#34;#7201a8&#34;],[0.3333333333333333,&#34;#9c179e&#34;],[0.4444444444444444,&#34;#bd3786&#34;],[0.5555555555555556,&#34;#d8576b&#34;],[0.6666666666666666,&#34;#ed7953&#34;],[0.7777777777777778,&#34;#fb9f3a&#34;],[0.8888888888888888,&#34;#fdca26&#34;],[1.0,&#34;#f0f921&#34;]],&#34;sequentialminus&#34;:[[0.0,&#34;#0d0887&#34;],[0.1111111111111111,&#34;#46039f&#34;],[0.2222222222222222,&#34;#7201a8&#34;],[0.3333333333333333,&#34;#9c179e&#34;],[0.4444444444444444,&#34;#bd3786&#34;],[0.5555555555555556,&#34;#d8576b&#34;],[0.6666666666666666,&#34;#ed7953&#34;],[0.7777777777777778,&#34;#fb9f3a&#34;],[0.8888888888888888,&#34;#fdca26&#34;],[1.0,&#34;#f0f921&#34;]],&#34;diverging&#34;:[[0,&#34;#8e0152&#34;],[0.1,&#34;#c51b7d&#34;],[0.2,&#34;#de77ae&#34;],[0.3,&#34;#f1b6da&#34;],[0.4,&#34;#fde0ef&#34;],[0.5,&#34;#f7f7f7&#34;],[0.6,&#34;#e6f5d0&#34;],[0.7,&#34;#b8e186&#34;],[0.8,&#34;#7fbc41&#34;],[0.9,&#34;#4d9221&#34;],[1,&#34;#276419&#34;]]},&#34;xaxis&#34;:{&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;ticks&#34;:&#34;&#34;,&#34;title&#34;:{&#34;standoff&#34;:15},&#34;zerolinecolor&#34;:&#34;white&#34;,&#34;automargin&#34;:true,&#34;zerolinewidth&#34;:2},&#34;yaxis&#34;:{&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;ticks&#34;:&#34;&#34;,&#34;title&#34;:{&#34;standoff&#34;:15},&#34;zerolinecolor&#34;:&#34;white&#34;,&#34;automargin&#34;:true,&#34;zerolinewidth&#34;:2},&#34;scene&#34;:{&#34;xaxis&#34;:{&#34;backgroundcolor&#34;:&#34;#E5ECF6&#34;,&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;showbackground&#34;:true,&#34;ticks&#34;:&#34;&#34;,&#34;zerolinecolor&#34;:&#34;white&#34;,&#34;gridwidth&#34;:2},&#34;yaxis&#34;:{&#34;backgroundcolor&#34;:&#34;#E5ECF6&#34;,&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;showbackground&#34;:true,&#34;ticks&#34;:&#34;&#34;,&#34;zerolinecolor&#34;:&#34;white&#34;,&#34;gridwidth&#34;:2},&#34;zaxis&#34;:{&#34;backgroundcolor&#34;:&#34;#E5ECF6&#34;,&#34;gridcolor&#34;:&#34;white&#34;,&#34;linecolor&#34;:&#34;white&#34;,&#34;showbackground&#34;:true,&#34;ticks&#34;:&#34;&#34;,&#34;zerolinecolor&#34;:&#34;white&#34;,&#34;gridwidth&#34;:2}},&#34;shapedefaults&#34;:{&#34;line&#34;:{&#34;color&#34;:&#34;#2a3f5f&#34;}},&#34;annotationdefaults&#34;:{&#34;arrowcolor&#34;:&#34;#2a3f5f&#34;,&#34;arrowhead&#34;:0,&#34;arrowwidth&#34;:1},&#34;geo&#34;:{&#34;bgcolor&#34;:&#34;white&#34;,&#34;landcolor&#34;:&#34;#E5ECF6&#34;,&#34;subunitcolor&#34;:&#34;white&#34;,&#34;showland&#34;:true,&#34;showlakes&#34;:true,&#34;lakecolor&#34;:&#34;white&#34;},&#34;title&#34;:{&#34;x&#34;:0.05},&#34;mapbox&#34;:{&#34;style&#34;:&#34;light&#34;}}},&#34;xaxis&#34;:{&#34;anchor&#34;:&#34;y&#34;,&#34;domain&#34;:[0.0,1.0],&#34;title&#34;:{&#34;text&#34;:&#34;sepal_width&#34;}},&#34;yaxis&#34;:{&#34;anchor&#34;:&#34;x&#34;,&#34;domain&#34;:[0.0,1.0],&#34;title&#34;:{&#34;text&#34;:&#34;sepal_length&#34;}},&#34;legend&#34;:{&#34;title&#34;:{&#34;text&#34;:&#34;species&#34;},&#34;tracegroupgap&#34;:0},&#34;margin&#34;:{&#34;t&#34;:60}}}"
-    ></div>
+  <div class="cell-body plotly-body">
+    <div class="plotly-container"><script type="application/json">{"data":[{"hovertemplate":"species=setosa\u003cbr\u003esepal_width=%{x}\u003cbr\u003esepal_length=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"setosa","marker":{"color":"#636efa","symbol":"circle"},"mode":"markers","name":"setosa","orientation":"v","showlegend":true,"x":{"dtype":"f8","bdata":"AAAAAAAADEAAAAAAAAAIQJqZmZmZmQlAzczMzMzMCEDNzMzMzMwMQDMzMzMzMw9AMzMzMzMzC0AzMzMzMzMLQDMzMzMzMwdAzczMzMzMCECamZmZmZkNQDMzMzMzMwtAAAAAAAAACEAAAAAAAAAIQAAAAAAAABBAmpmZmZmZEUAzMzMzMzMPQAAAAAAAAAxAZmZmZmZmDkBmZmZmZmYOQDMzMzMzMwtAmpmZmZmZDUDNzMzMzMwMQGZmZmZmZgpAMzMzMzMzC0AAAAAAAAAIQDMzMzMzMwtAAAAAAAAADEAzMzMzMzMLQJqZmZmZmQlAzczMzMzMCEAzMzMzMzMLQGZmZmZmZhBAzczMzMzMEEDNzMzMzMwIQJqZmZmZmQlAAAAAAAAADEDNzMzMzMwIQAAAAAAAAAhAMzMzMzMzC0AAAAAAAAAMQGZmZmZmZgJAmpmZmZmZCUAAAAAAAAAMQGZmZmZmZg5AAAAAAAAACEBmZmZmZmYOQJqZmZmZmQlAmpmZmZmZDUBmZmZmZmYKQA=="},"xaxis":"x","y":{"dtype":"f8","bdata":"ZmZmZmZmFECamZmZmZkTQM3MzMzMzBJAZmZmZmZmEkAAAAAAAAAUQJqZmZmZmRVAZmZmZmZmEkAAAAAAAAAUQJqZmZmZmRFAmpmZmZmZE0CamZmZmZkVQDMzMzMzMxNAMzMzMzMzE0AzMzMzMzMRQDMzMzMzMxdAzczMzMzMFkCamZmZmZkVQGZmZmZmZhRAzczMzMzMFkBmZmZmZmYUQJqZmZmZmRVAZmZmZmZmFEBmZmZmZmYSQGZmZmZmZhRAMzMzMzMzE0AAAAAAAAAUQAAAAAAAABRAzczMzMzMFEDNzMzMzMwUQM3MzMzMzBJAMzMzMzMzE0CamZmZmZkVQM3MzMzMzBRAAAAAAAAAFkCamZmZmZkTQAAAAAAAABRAAAAAAAAAFkCamZmZmZkTQJqZmZmZmRFAZmZmZmZmFEAAAAAAAAAUQAAAAAAAABJAmpmZmZmZEUAAAAAAAAAUQGZmZmZmZhRAMzMzMzMzE0BmZmZmZmYUQGZmZmZmZhJAMzMzMzMzFUAAAAAAAAAUQA=="},"yaxis":"y","type":"scatter"},{"hovertemplate":"species=versicolor\u003cbr\u003esepal_width=%{x}\u003cbr\u003esepal_length=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"versicolor","marker":{"color":"#EF553B","symbol":"circle"},"mode":"markers","name":"versicolor","orientation":"v","showlegend":true,"x":{"dtype":"f8","bdata":"mpmZmZmZCUCamZmZmZkJQM3MzMzMzAhAZmZmZmZmAkBmZmZmZmYGQGZmZmZmZgZAZmZmZmZmCkAzMzMzMzMDQDMzMzMzMwdAmpmZmZmZBUAAAAAAAAAAQAAAAAAAAAhAmpmZmZmZAUAzMzMzMzMHQDMzMzMzMwdAzczMzMzMCEAAAAAAAAAIQJqZmZmZmQVAmpmZmZmZAUAAAAAAAAAEQJqZmZmZmQlAZmZmZmZmBkAAAAAAAAAEQGZmZmZmZgZAMzMzMzMzB0AAAAAAAAAIQGZmZmZmZgZAAAAAAAAACEAzMzMzMzMHQM3MzMzMzARAMzMzMzMzA0AzMzMzMzMDQJqZmZmZmQVAmpmZmZmZBUAAAAAAAAAIQDMzMzMzMwtAzczMzMzMCEBmZmZmZmYCQAAAAAAAAAhAAAAAAAAABEDNzMzMzMwEQAAAAAAAAAhAzczMzMzMBEBmZmZmZmYCQJqZmZmZmQVAAAAAAAAACEAzMzMzMzMHQDMzMzMzMwdAAAAAAAAABEBmZmZmZmYGQA=="},"xaxis":"x","y":{"dtype":"f8","bdata":"AAAAAAAAHECamZmZmZkZQJqZmZmZmRtAAAAAAAAAFkAAAAAAAAAaQM3MzMzMzBZAMzMzMzMzGUCamZmZmZkTQGZmZmZmZhpAzczMzMzMFEAAAAAAAAAUQJqZmZmZmRdAAAAAAAAAGEBmZmZmZmYYQGZmZmZmZhZAzczMzMzMGkBmZmZmZmYWQDMzMzMzMxdAzczMzMzMGEBmZmZmZmYWQJqZmZmZmRdAZmZmZmZmGEAzMzMzMzMZQGZmZmZmZhhAmpmZmZmZGUBmZmZmZmYaQDMzMzMzMxtAzczMzMzMGkAAAAAAAAAYQM3MzMzMzBZAAAAAAAAAFkAAAAAAAAAWQDMzMzMzMxdAAAAAAAAAGECamZmZmZkVQAAAAAAAABhAzczMzMzMGkAzMzMzMzMZQGZmZmZmZhZAAAAAAAAAFkAAAAAAAAAWQGZmZmZmZhhAMzMzMzMzF0AAAAAAAAAUQGZmZmZmZhZAzczMzMzMFkDNzMzMzMwWQM3MzMzMzBhAZmZmZmZmFEDNzMzMzMwWQA=="},"yaxis":"y","type":"scatter"},{"hovertemplate":"species=virginica\u003cbr\u003esepal_width=%{x}\u003cbr\u003esepal_length=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"virginica","marker":{"color":"#00cc96","symbol":"circle"},"mode":"markers","name":"virginica","orientation":"v","showlegend":true,"x":{"dtype":"f8","bdata":"ZmZmZmZmCkCamZmZmZkFQAAAAAAAAAhAMzMzMzMzB0AAAAAAAAAIQAAAAAAAAAhAAAAAAAAABEAzMzMzMzMHQAAAAAAAAARAzczMzMzMDECamZmZmZkJQJqZmZmZmQVAAAAAAAAACEAAAAAAAAAEQGZmZmZmZgZAmpmZmZmZCUAAAAAAAAAIQGZmZmZmZg5AzczMzMzMBECamZmZmZkBQJqZmZmZmQlAZmZmZmZmBkBmZmZmZmYGQJqZmZmZmQVAZmZmZmZmCkCamZmZmZkJQGZmZmZmZgZAAAAAAAAACEBmZmZmZmYGQAAAAAAAAAhAZmZmZmZmBkBmZmZmZmYOQGZmZmZmZgZAZmZmZmZmBkDNzMzMzMwEQAAAAAAAAAhAMzMzMzMzC0DNzMzMzMwIQAAAAAAAAAhAzczMzMzMCEDNzMzMzMwIQM3MzMzMzAhAmpmZmZmZBUCamZmZmZkJQGZmZmZmZgpAAAAAAAAACEAAAAAAAAAEQAAAAAAAAAhAMzMzMzMzC0AAAAAAAAAIQA=="},"xaxis":"x","y":{"dtype":"f8","bdata":"MzMzMzMzGUAzMzMzMzMXQGZmZmZmZhxAMzMzMzMzGUAAAAAAAAAaQGZmZmZmZh5AmpmZmZmZE0AzMzMzMzMdQM3MzMzMzBpAzczMzMzMHEAAAAAAAAAaQJqZmZmZmRlAMzMzMzMzG0DNzMzMzMwWQDMzMzMzMxdAmpmZmZmZGUAAAAAAAAAaQM3MzMzMzB5AzczMzMzMHkAAAAAAAAAYQJqZmZmZmRtAZmZmZmZmFkDNzMzMzMweQDMzMzMzMxlAzczMzMzMGkDNzMzMzMwcQM3MzMzMzBhAZmZmZmZmGECamZmZmZkZQM3MzMzMzBxAmpmZmZmZHUCamZmZmZkfQJqZmZmZmRlAMzMzMzMzGUBmZmZmZmYYQM3MzMzMzB5AMzMzMzMzGUCamZmZmZkZQAAAAAAAABhAmpmZmZmZG0DNzMzMzMwaQJqZmZmZmRtAMzMzMzMzF0AzMzMzMzMbQM3MzMzMzBpAzczMzMzMGkAzMzMzMzMZQAAAAAAAABpAzczMzMzMGECamZmZmZkXQA=="},"yaxis":"y","type":"scatter"}],"layout":{"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"sepal_width"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"sepal_length"}},"legend":{"title":{"text":"species"},"tracegroupgap":0},"margin":{"t":60}}}</script></div>
   </div>
 
   <p class="cell-caption">Iris Dataset (interactive)</p>
@@ -2246,6 +2417,7 @@ if __name__ == &#39;__main__&#39;:
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2337,6 +2509,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2417,6 +2590,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2453,7 +2627,7 @@ cell-overflow  cell-halign-left cell-valign-top"
 
   <div class="cell-body iframe-body">
     <iframe
-      src="https://www.openstreetmap.org/export/embed.html?bbox=-46.50%2C-23.41%2C-45.63%2C-22.99&layer=mapnik"
+      src="https://www.openstreetmap.org/export/embed.html?bbox=-46.50%2C-23.41%2C-45.63%2C-22.99&amp;layer=mapnik"
       class="hs-iframe"
       loading="lazy"
       allowfullscreen
@@ -2466,6 +2640,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2527,6 +2702,7 @@ cell-overflow  cell-halign-left cell-valign-top"
     </div>
 
     <!-- Presenter notes -->
+    
     </div>
   </section>
 
@@ -2554,51 +2730,51 @@ cell-overflow  cell-halign-left cell-valign-top"
 
 <!-- ===================== OVERVIEW ===================== -->
 <div id="overview" class="hidden">
-  <div class="overview-thumb" onclick="goToSlide('text'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("text"); toggleOverview()'>
     <span class="overview-num">1</span>
     <span class="overview-title">TextCell — add_text()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('metric'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("metric"); toggleOverview()'>
     <span class="overview-num">2</span>
     <span class="overview-title">MetricCell — add_metric()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('table'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("table"); toggleOverview()'>
     <span class="overview-num">3</span>
     <span class="overview-title">TableCell — add_table()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('image'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("image"); toggleOverview()'>
     <span class="overview-num">4</span>
     <span class="overview-title">ImageCell — add_image()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('image-slider'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("image-slider"); toggleOverview()'>
     <span class="overview-num">5</span>
     <span class="overview-title">ImageSliderCell — add_image_slider()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('list'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("list"); toggleOverview()'>
     <span class="overview-num">6</span>
     <span class="overview-title">ListCell — add_list()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('code'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("code"); toggleOverview()'>
     <span class="overview-num">7</span>
     <span class="overview-title">CodeCell — add_code()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('plotly'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("plotly"); toggleOverview()'>
     <span class="overview-num">8</span>
     <span class="overview-title">PlotlyCell — add_plotly()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('mermaid'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("mermaid"); toggleOverview()'>
     <span class="overview-num">9</span>
     <span class="overview-title">MermaidCell — add_mermaid()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('html'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("html"); toggleOverview()'>
     <span class="overview-num">10</span>
     <span class="overview-title">HtmlCell — add_html()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('iframe'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("iframe"); toggleOverview()'>
     <span class="overview-num">11</span>
     <span class="overview-title">IframeCell — add_iframe()</span>
   </div>
-  <div class="overview-thumb" onclick="goToSlide('empty'); toggleOverview()">
+  <div class="overview-thumb" onclick='goToSlide("empty"); toggleOverview()'>
     <span class="overview-num">12</span>
     <span class="overview-title">EmptyCell — add_empty()</span>
   </div>
@@ -3345,7 +3521,7 @@ window.MathJax = {
     }
     // Reconcile collapse state. A remembered toggle (localStorage) wins over
     // the server-rendered default; otherwise the .sb-collapsed body class
-    // (set when sidebar_collapsed=True) governs.
+    // (set when Sidebar(collapsed=True)) governs.
     var storedCollapsed = localStorage.getItem("montin-sb-collapsed");
     if (storedCollapsed === "1") {
       document.documentElement.style.setProperty("--sidebar-width", "0px");
@@ -3810,7 +3986,8 @@ window.MathJax = {
     var containers = document.querySelectorAll(".plotly-container");
     containers.forEach(function(el) {
       try {
-        var raw = el.getAttribute("data-fig");
+        var figEl = el.querySelector('script[type="application/json"]');
+        var raw = figEl ? figEl.textContent : el.getAttribute("data-fig");
         if (!raw) return;
         var fig = JSON.parse(raw);
         var base = fig.layout || {};

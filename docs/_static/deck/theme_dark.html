@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), usb=(), payment=(), interest-cohort=()">
-  <meta name="author"  content="A. Dessimoni">
+  <meta name="author"  content="">
   <meta name="version" content="">
   <meta name="date"    content="2026-09-21">
-  <title>Q2 Report</title>
+  <title>Theme: dark</title>
   <style>
 /* --- default/image.css --- */
 /* ============================================================
@@ -1030,6 +1030,26 @@ body.theme-default {
 .slide-header .deck-logo-header { float: right; margin-left: 12px; }
 .slide-cover .deck-logo-cover { margin-bottom: 8px; }
 
+/* --- dark/layout.css --- */
+/* ============================================================
+   dark/layout.css — charcoal VS Code-inspired dark theme
+   ============================================================ */
+
+:root {
+  --sidebar-width:   220px;
+  --toolbar-height:  44px;
+  --color-bg:        #1e1e1e;
+  --color-surface:   #252526;
+  --color-surface2:  #2d2d30;
+  --color-accent:    #7c9cff;
+  --color-text:      #d4d4d4;
+  --color-text-muted:#858585;
+  --color-border:    #3e3e42;
+  --font-sans:       "Segoe UI", system-ui, sans-serif;
+  --font-mono:       "Cascadia Code", "Fira Code", monospace;
+  --radius:          4px;
+}
+
 /* --- default/slide.css --- */
 /* ============================================================
    slide.css — slide, header, canvas e células
@@ -1754,6 +1774,16 @@ body.theme-default {
 .delta-negative { color: #dc2626; }   /* accessible red on the light Sand bg   */
 .delta-neutral  { color: var(--color-text-muted); }
 
+/* --- dark/metric.css --- */
+/* ============================================================
+   dark/metric.css — bright delta colours for the charcoal bg.
+   The default base now ships light-background deltas, so this dark
+   theme restores the brighter green/red that read on its own bg.
+   ============================================================ */
+
+.delta-positive { color: #4ade80; }
+.delta-negative { color: #f87171; }
+
 /* --- default/toolbar.css --- */
 /* ============================================================
    toolbar.css — placeholder (v1.0 implementation pending)
@@ -1762,7 +1792,7 @@ body.theme-default {
   </style>
 </head>
 <body
-  class="theme-default fixed-size sb-collapsed"
+  class="theme-dark fixed-size sb-collapsed"
   data-sb-search-scope="title"
   data-width="1280"
   data-height="720"
@@ -1773,7 +1803,7 @@ body.theme-default {
 
 <!-- ===================== SIDEBAR ===================== -->
 <nav id="sidebar">
-  <div id="sidebar-header">Q2 Report</div>
+  <div id="sidebar-header">Theme: dark</div>
   <div id="sidebar-search-wrap">
     <input id="sidebar-search" type="text" placeholder="Filter slides…"
            autocomplete="off" spellcheck="false"
@@ -1794,25 +1824,25 @@ body.theme-default {
     <button type="button" title="Expand one level"   onclick="expandLevel()">&#8744;</button>
   </div>
   <ul id="slide-list">
-    <li class="sidebar-item sidebar-type-slide"
+    <li class="sidebar-item sidebar-type-title"
         data-target="_slide-1"
-        data-type="slide"
+        data-type="title"
         data-level="0"
-        data-subtitle=""
+        data-subtitle="Charcoal (VS Code-like)"
         onclick='goToSlide("_slide-1")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">1</span>
-      <span class="sidebar-title">Overview</span>
+      <span class="sidebar-title">Theme: dark</span>
     </li>
     <li class="sidebar-item sidebar-type-slide"
-        data-target="_slide-2"
+        data-target="demo"
         data-type="slide"
         data-level="0"
-        data-subtitle=""
-        onclick='goToSlide("_slide-2")'>
+        data-subtitle="A representative content slide"
+        onclick='goToSlide("demo")'>
       <span class="sidebar-caret-spacer"></span>
       <span class="sidebar-num">2</span>
-      <span class="sidebar-title">Trends</span>
+      <span class="sidebar-title">Quarterly results</span>
     </li>
   </ul>
 </nav>
@@ -1821,11 +1851,30 @@ body.theme-default {
 <!-- ===================== MAIN AREA ===================== -->
 <main id="main">
 
-  <!-- ── Regular content slide ── -->
+  <!-- ── Cover slide (title / section) ── -->
   <section
     id="_slide-1"
-    class="slide slide-type-slide"
+    class="slide slide-type-title"
     data-index="1"
+  >
+    <div class="stage">
+    <div class="slide-cover">
+      <h1 class="slide-cover-title">Theme: dark</h1>
+      <p class="slide-cover-subtitle">Charcoal (VS Code-like)</p>
+      <div class="slide-cover-meta">
+<span>2026-09-21</span>      </div>
+    </div>
+    
+    </div>
+  </section>
+
+
+
+  <!-- ── Regular content slide ── -->
+  <section
+    id="demo"
+    class="slide slide-type-slide"
+    data-index="2"
     style="
       grid-template-rows: 1fr 1fr;
       grid-template-columns: 1fr 1fr 1fr;
@@ -1834,7 +1883,8 @@ body.theme-default {
     <div class="stage">
     <!-- Slide header -->
     <header class="slide-header">
-      <h1 class="slide-title">Overview</h1>
+      <h1 class="slide-title">Quarterly results</h1>
+      <p class="slide-subtitle">A representative content slide</p>
     </header>
 
     <!-- Canvas: rendered cells -->
@@ -1855,7 +1905,7 @@ body.theme-default {
     <div class="metric-value">98.7</div>
     <div class="metric-label">Efficiency (%)</div>
     <div class="metric-delta delta-positive" style="color: #4ade80">
-      ▲ 2.3 vs Q1    </div>
+      ▲ 2.3    </div>
   </div>
 
 </div>
@@ -1868,8 +1918,8 @@ body.theme-default {
 
   <div class="cell-body metric-body">
     <div class="metric-value">142</div>
-    <div class="metric-label">Incidents</div>
-    <div class="metric-delta delta-positive" style="color: #4ade80">
+    <div class="metric-label">Defects</div>
+    <div class="metric-delta delta-negative" style="color: #f87171">
       ▼ -18    </div>
   </div>
 
@@ -1882,80 +1932,34 @@ body.theme-default {
 >
 
   <div class="cell-body metric-body">
-    <div class="metric-value">4.8 s</div>
-    <div class="metric-label">Avg response time</div>
+    <div class="metric-value">4.8</div>
+    <div class="metric-label">NPS</div>
+    <div class="metric-delta delta-positive" style="color: #4ade80">
+      ▲ 0.4    </div>
   </div>
 
 </div>
-      <div class="cell cell-mermaid
+      <div class="cell cell-text
 cell-overflow  cell-halign-left cell-valign-top"
   style="
-    grid-column: 1 / span 2;
+    grid-column: 1 / span 1;
     grid-row:    2 / span 1;
   "
 >
 
-  <div class="cell-body mermaid-body">
-    <pre class="mermaid">gantt
-    title Delivery timeline
-    dateFormat YYYY-MM-DD
-    section Build
-        Design       :a1, 2014-01-01, 30d
-        Implement    :after a1, 20d
-    section Ship
-        QA           :2014-02-12, 12d
-        Release      :24d</pre>
-  </div>
-
+  <div class="cell-body cell-text-body markdown-body"><h3>Highlights</h3>
+<ul>
+<li>Throughput up <strong>12%</strong></li>
+<li>Two incidents, both resolved</li>
+<li>Link to the <a href="https://example.com">dashboard</a></li>
+</ul>
 </div>
-    </div>
 
-    <!-- Presenter notes -->
-    
-    </div>
-  </section>
-
-
-  <!-- ── Regular content slide ── -->
-  <section
-    id="_slide-2"
-    class="slide slide-type-slide"
-    data-index="2"
-    style="
-      grid-template-rows: 1fr;
-      grid-template-columns: 1fr 1fr;
-    "
-  >
-    <div class="stage">
-    <!-- Slide header -->
-    <header class="slide-header">
-      <h1 class="slide-title">Trends</h1>
-    </header>
-
-    <!-- Canvas: rendered cells -->
-    <div class="slide-canvas"
-      style="
-        grid-template-rows: 1fr;
-        grid-template-columns: 1fr 1fr;
-      "
-    >
-      <div class="cell cell-plotly cell-clip  cell-halign-left cell-valign-top"
-  style="
-    grid-column: 1 / span 1;
-    grid-row:    1 / span 1;
-  "
->
-
-  <div class="cell-body plotly-body">
-    <div class="plotly-container"><script type="application/json">{"data":[{"hovertemplate":"variable=GOOG\u003cbr\u003edate=%{x}\u003cbr\u003evalue=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"GOOG","line":{"color":"#636efa","dash":"solid"},"marker":{"symbol":"circle"},"mode":"lines","name":"GOOG","orientation":"v","showlegend":true,"x":["2018-01-01","2018-01-08","2018-01-15","2018-01-22","2018-01-29","2018-02-05","2018-02-12","2018-02-19","2018-02-26","2018-03-05","2018-03-12","2018-03-19","2018-03-26","2018-04-02","2018-04-09","2018-04-16","2018-04-23","2018-04-30","2018-05-07","2018-05-14","2018-05-21","2018-05-28","2018-06-04","2018-06-11","2018-06-18","2018-06-25","2018-07-02","2018-07-09","2018-07-16","2018-07-23","2018-07-30","2018-08-06","2018-08-13","2018-08-20","2018-08-27","2018-09-03","2018-09-10","2018-09-17","2018-09-24","2018-10-01","2018-10-08","2018-10-15","2018-10-22","2018-10-29","2018-11-05","2018-11-12","2018-11-19","2018-11-26","2018-12-03","2018-12-10","2018-12-17","2018-12-24","2018-12-31","2019-01-07","2019-01-14","2019-01-21","2019-01-28","2019-02-04","2019-02-11","2019-02-18","2019-02-25","2019-03-04","2019-03-11","2019-03-18","2019-03-25","2019-04-01","2019-04-08","2019-04-15","2019-04-22","2019-04-29","2019-05-06","2019-05-13","2019-05-20","2019-05-27","2019-06-03","2019-06-10","2019-06-17","2019-06-24","2019-07-01","2019-07-08","2019-07-15","2019-07-22","2019-07-29","2019-08-05","2019-08-12","2019-08-19","2019-08-26","2019-09-02","2019-09-09","2019-09-16","2019-09-23","2019-09-30","2019-10-07","2019-10-14","2019-10-21","2019-10-28","2019-11-04","2019-11-11","2019-11-18","2019-11-25","2019-12-02","2019-12-09","2019-12-16","2019-12-23","2019-12-30"],"xaxis":"x","y":{"dtype":"f8","bdata":"AAAAAAAA8D\u002fOK9MDb0rwP68QOq4ag\u002fA\u002f9oPp0ooR8T8TsS9U7yPwP99D4KT+IO4\u002f3Hw6e8fI7z+q8F+IRFvwP9LSdHnBUu8\u002fLIMaANTW8D8JvFtMfXzwPz7QZruEqO0\u002fHpxM0nn07T+3TPA\u002fhzztPxfM6R6\u002f4e0\u002fIXrkjXUm7z8heCA9i+ftP6NcPhmDbu4\u002fQjPHjn7i7z+qgyQlaPXuP+V5ctWGOu8\u002fZFIUWy1A8D9vrqGpREXwP4WiXq\u002fqufA\u002fU4wX6uHF8D\u002fpH6HJ3jHwP3Um9zr9jPA\u002f0NEB+MZB8T9XHtVhPzPxPyuHvbZk+vE\u002fNwuPnm7D8T\u002fXXM4FFvfxP6hIRQnkbvE\u002faz8Jog+48T9kWBFN667xP01QZMGg6PA\u002fpI7CAT4F8T+UMFxuT+3wP6R7NKQOU\u002fE\u002f85Ml4tTM8D\u002fYyoXbKx3wP2L4PrQd1e8\u002fL6n6oWIb7z\u002fSWD6VtrXuP9oE9qnY8+4\u002f8kBpRjbR7j+goGHWr7ntP\u002fMQKYMHxu8\u002fXzbgVBMY7j8FnNv3GUHuP7udcIUkcOw\u002fdtxkp8ob7j+2jo+avBXvP53HSc9Ase4\u002fQjPHjn7i7z9LiPtKdqzvPxmlC0mpH\u002fA\u002fOvEgMLbK7z+605ckcCrwP3zeMMc\u002fHvA\u002frDRmQwmQ8D+apul6+pTwPymUuDeTMfE\u002fLh6kE8N\u002f8T8zPRwRJAjxPzJ9CsjkhfE\u002fOJ3k7bqt8T\u002flnXpkevLxPxPbLk2Nd\u002fI\u002fumBFhRE18T9FfGgTjObwP4oJl\u002f853\u002fA\u002fNI4dTRd08D8JjgPgMwXwP1INy2YH8+4\u002f3LqtWYuC7z8wZfiBBUnwP9tJ47eLYe8\u002fdM57zxpt8D8PGkn3kJ7wP\u002fvlhlmRZ\u002fA\u002fR53F\u002fqYm8j95l9xY\u002fVTxP0LUZHXEPvE\u002fR7cjKRUY8T\u002fi1RHuT7bwPzyHlAsaP\u002fE\u002ffDnW36R98T+zOPArVf7xP79xyu6L2vE\u002f7Hfuco\u002fI8T9\u002fY3S0xIzxP06g9q+8pPE\u002fIwGMcl4U8j+pVbJuWl3yPzJVr01ZffI\u002fr0ZXkS8J8z\u002fPhYSkg2DzP8kL1dedzfI\u002fE8Ioj13x8j\u002fWQP++4XXzP+AKN76skPM\u002fMT5xFDeX8z+urvcqw5\u002fzP2qQawKBaPM\u002f"},"yaxis":"y","type":"scatter"},{"hovertemplate":"variable=AAPL\u003cbr\u003edate=%{x}\u003cbr\u003evalue=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"AAPL","line":{"color":"#EF553B","dash":"solid"},"marker":{"symbol":"circle"},"mode":"lines","name":"AAPL","orientation":"v","showlegend":true,"x":["2018-01-01","2018-01-08","2018-01-15","2018-01-22","2018-01-29","2018-02-05","2018-02-12","2018-02-19","2018-02-26","2018-03-05","2018-03-12","2018-03-19","2018-03-26","2018-04-02","2018-04-09","2018-04-16","2018-04-23","2018-04-30","2018-05-07","2018-05-14","2018-05-21","2018-05-28","2018-06-04","2018-06-11","2018-06-18","2018-06-25","2018-07-02","2018-07-09","2018-07-16","2018-07-23","2018-07-30","2018-08-06","2018-08-13","2018-08-20","2018-08-27","2018-09-03","2018-09-10","2018-09-17","2018-09-24","2018-10-01","2018-10-08","2018-10-15","2018-10-22","2018-10-29","2018-11-05","2018-11-12","2018-11-19","2018-11-26","2018-12-03","2018-12-10","2018-12-17","2018-12-24","2018-12-31","2019-01-07","2019-01-14","2019-01-21","2019-01-28","2019-02-04","2019-02-11","2019-02-18","2019-02-25","2019-03-04","2019-03-11","2019-03-18","2019-03-25","2019-04-01","2019-04-08","2019-04-15","2019-04-22","2019-04-29","2019-05-06","2019-05-13","2019-05-20","2019-05-27","2019-06-03","2019-06-10","2019-06-17","2019-06-24","2019-07-01","2019-07-08","2019-07-15","2019-07-22","2019-07-29","2019-08-05","2019-08-12","2019-08-19","2019-08-26","2019-09-02","2019-09-09","2019-09-16","2019-09-23","2019-09-30","2019-10-07","2019-10-14","2019-10-21","2019-10-28","2019-11-04","2019-11-11","2019-11-18","2019-11-25","2019-12-02","2019-12-09","2019-12-16","2019-12-23","2019-12-30"],"xaxis":"x","y":{"dtype":"f8","bdata":"AAAAAAAA8D\u002fq2yr46jDwP+aHLuP7UPA\u002fhjfCvKBc7z\u002fHCCb6O1ntP0x+P5bGmew\u002fRAa0vbGH7z9VGnLuswvwP2kRLTJSHPA\u002fRdD7c4908D8I1SVzr0bwP0G2R74TKe4\u002fohoFfQWu7j\u002f2V7LLG8ruP5V3m1hc8+8\u002ffxuQCZdN7j+Esxtxbq7tPxcaOCmszvA\u002fijlrZBU+8T+0Zvn0twjxPz0UdILZPfE\u002fB08YBbRk8T\u002fxL3wX4IbxP7RGpFvvQ\u002fE\u002fV8F+RC\u002fo8D8KZ069oezwP3+hnXeSL\u002fE\u002fD6XnITd+8T+wTsM8yoDxP5ATyvEFdvE\u002fy\u002fXqlScE8z+quvFKY\u002fnyP3YLToid5PM\u002fwQljGWHD8z9AXKrF18\u002f0P9LFrESvO\u002fQ\u002f5nnXjiJ39D\u002fAWLnkfObzP4+cvSabo\u002fQ\u002fElLX4KqB9D+QA0qqpE70P5UwZG4bDfQ\u002fgb439KfG8z+AeH+uN\u002fjyP24GUzTEsfI\u002fY9l2NrWx8T8zP\u002fkEJIHvP5wFiuHKU\u002fA\u002fOKtpAULP7j9SqR3iWkLuP8SX0e3ij+s\u002fD9ufa1mR7D+ypk4dQxzrP7AEUYHp2Os\u002fOXBN8\u002fes7D9Ljz6C+NjsP9Huyg0Kc+4\u002f3EA1vyIp7z91iyODminvPxkXfQz5oO8\u002fwukNgJj+7z8sSKoPKp7vPwHBKXxFBPE\u002fxYy1aql38T\u002fI0+xU6l3xP5WGnPvsAvI\u002fdGCHvLEu8j94QgUrfaPyP45GhZnJrfI\u002fXI\u002fC9Shc8z+KGup5IwfyP0jhehSuR\u002fE\u002fh8eXs+tc8D81eet4owHwP8ies6+YYvE\u002fsNJSrTef8T\u002ff7SR+lizyP\u002fVtFXx1GPI\u002fWs2ZICas8j\u002fkEaG8YZbyP9Ia5njDhfI\u002foeixnk3+8j9FLlPiO6fyPyeFrYtQYPI\u002f4XoUrkfh8j\u002f9XFgV74byP0sdlnu1FfM\u002fcLKYpIB\u002f8z8AAAAAAAD0P0uUokYg6PM\u002fNXnreKMB9D+NhtrBVMH0Py1pqfepmPU\u002fLTRwUlid9T+vAiiOYYv2P7sV52WmY\u002fc\u002fih0lS8PI9z\u002fmvGeITUz4P6HjTdol7\u002fc\u002fJvo7WS1v+D+cld8jKcD4Px8beQcVKPk\u002fBmk1K36M+T+Rn7rI+X76P2Lp9n0W2fo\u002f"},"yaxis":"y","type":"scatter"}],"layout":{"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"date"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"value"}},"legend":{"title":{"text":"variable"},"tracegroupgap":0},"margin":{"t":60}}}</script></div>
-  </div>
-
-  <p class="cell-caption">Weekly close price</p>
 </div>
       <div class="cell cell-table cell-overflow  cell-halign-left cell-valign-top"
   style="
-    grid-column: 2 / span 1;
-    grid-row:    1 / span 1;
+    grid-column: 2 / span 2;
+    grid-row:    2 / span 1;
   "
 >
 
@@ -1963,36 +1967,32 @@ cell-overflow  cell-halign-left cell-valign-top"
     <table class="hs-table">
       <thead>
         <tr>
-          <th>Component</th>
+          <th>Run</th>
+          <th>Score</th>
           <th>Status</th>
-          <th>Uptime (%)</th>
         </tr>
       </thead>
       <tbody>
         <tr class="row-odd">
-          <td>Motor A</td>
-          <td>OK</td>
-          <td>99.1</td>
+          <td>1</td>
+          <td>0.91</td>
+          <td>ok</td>
         </tr>
         <tr class="row-even">
-          <td>Motor B</td>
-          <td>OK</td>
-          <td>97.8</td>
+          <td>2</td>
+          <td>0.88</td>
+          <td>ok</td>
         </tr>
         <tr class="row-odd">
-          <td>Pump C</td>
-          <td>Warning</td>
-          <td>91.3</td>
-        </tr>
-        <tr class="row-even">
-          <td>Valve D</td>
-          <td>OK</td>
-          <td>98.6</td>
+          <td>3</td>
+          <td>0.94</td>
+          <td>ok</td>
         </tr>
       </tbody>
     </table>
   </div>
 
+  <p class="cell-caption">Latest runs</p>
 </div>
     </div>
 
@@ -2027,11 +2027,11 @@ cell-overflow  cell-halign-left cell-valign-top"
 <div id="overview" class="hidden">
   <div class="overview-thumb" onclick='goToSlide("_slide-1"); toggleOverview()'>
     <span class="overview-num">1</span>
-    <span class="overview-title">Overview</span>
+    <span class="overview-title">Theme: dark</span>
   </div>
-  <div class="overview-thumb" onclick='goToSlide("_slide-2"); toggleOverview()'>
+  <div class="overview-thumb" onclick='goToSlide("demo"); toggleOverview()'>
     <span class="overview-num">2</span>
-    <span class="overview-title">Trends</span>
+    <span class="overview-title">Quarterly results</span>
   </div>
 </div>
 
@@ -2058,10 +2058,7 @@ cell-overflow  cell-halign-left cell-valign-top"
 </div>
 
 <!-- ===================== PLUGINS ===================== -->
-<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7" crossorigin="anonymous" charset="utf-8"></script>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js" integrity="sha384-rbtjAdnIQE/aQJGEgXrVUlMibdfTSa4PQju4HDhN3sR2PmaKFzhEafuePsl9H/9I" crossorigin="anonymous" charset="utf-8"></script>
 
-<script>mermaid.initialize({ startOnLoad: false, theme: "dark" });</script>
 
 <!-- ===================== JS ===================== -->
 <script>
