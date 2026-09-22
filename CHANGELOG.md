@@ -63,6 +63,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   (`assets`, `variants` and per-file `sri`). Adding a plugin now takes a `Plugin`
   subclass plus a manifest entry — the resolver and `scripts/update_vendor.py`
   need no changes.
+- `overflow` was removed from `add_plotly`, `add_iframe` and `add_image_slider`,
+  where it had no effect: those cells always clip and their content sizes
+  itself.
 
 ### Fixed
 - `add_tabulator(selectable=…)` and `spreadsheet_mode=True` sent their range
@@ -79,6 +82,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   `PluginNotDeclaredError`. The default `SlideDefaults` / `CellDefaults` and
   passed-in plugin instances are no longer shared between decks, so mutating one
   deck's defaults no longer leaks into the others.
+- `transparent`, `halign`, `valign` and `fontscale` now appear in the signature
+  and docstring of every `add_*` method (they were accepted but invisible to
+  editors and type checkers).
 
 ### Security
 - **HTML autoescaping is on by default.** Titles, subtitles, captions, table

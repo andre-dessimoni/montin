@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 class PlotlyCell(Cell):
     """
     Interactive Plotly figure embedded as JSON.
-    Effective overflow default: False.
+    The cell always clips; the chart resizes to fit it.
     Requires Plugins.Plotly().
     """
 

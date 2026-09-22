@@ -18,8 +18,6 @@ class ImageSliderCell(Cell):
     Slider images also appear as lightbox thumbnails.
     """
 
-    _DEFAULT_OVERFLOW = False
-
     def __init__(
         self,
         sources: list,

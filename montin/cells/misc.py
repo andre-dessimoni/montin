@@ -48,7 +48,6 @@ class ListCell(Cell):
 class CodeCell(Cell):
     """
     Code block with syntax highlighting.
-    Effective copy_button default: True.
     Requires Plugins.Highlight().
     """
 
@@ -175,7 +174,6 @@ class MetricCell(Cell):
 class MermaidCell(Cell):
     """
     Mermaid diagram (flowchart, sequenceDiagram, architecture, etc.).
-    Effective overflow default: False.
     Requires Plugins.Mermaid().
     """
 
@@ -227,7 +225,7 @@ class IframeCell(Cell):
     """
     Embed external content via <iframe>.
     Requires an internet connection.
-    Effective overflow default: False.
+    The cell always clips; the embedded page scrolls itself.
     """
 
     def __init__(self, url: str, params: CellParams) -> None:

@@ -260,6 +260,10 @@ class Slide:
         overflow:      bool        = _UNSET,  # type: ignore[assignment]
         copy_button:   bool        = _UNSET,  # type: ignore[assignment]
         expand_button: bool        = _UNSET,  # type: ignore[assignment]
+        transparent:   bool        = _UNSET,  # type: ignore[assignment]
+        halign:        str         = _UNSET,  # type: ignore[assignment]
+        valign:        str         = _UNSET,  # type: ignore[assignment]
+        fontscale:     float       = _UNSET,  # type: ignore[assignment]
         _params: Any               = None,
     ) -> "ImageCell | MatplotlibCell":
         """Add an image to the slide.
@@ -293,6 +297,13 @@ class Slide:
             overflow: Show a scrollbar on the cell instead of clipping.
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
 
         Returns:
             ImageCell | MatplotlibCell: ``MatplotlibCell`` when ``source`` is a
@@ -327,6 +338,10 @@ class Slide:
         overflow:      bool        = _UNSET,  # type: ignore[assignment]
         copy_button:   bool        = _UNSET,  # type: ignore[assignment]
         expand_button: bool        = _UNSET,  # type: ignore[assignment]
+        transparent:   bool        = _UNSET,  # type: ignore[assignment]
+        halign:        str         = _UNSET,  # type: ignore[assignment]
+        valign:        str         = _UNSET,  # type: ignore[assignment]
+        fontscale:     float       = _UNSET,  # type: ignore[assignment]
         _params: Any               = None,
     ) -> TableCell:
         """Add a static HTML table to the slide.
@@ -356,6 +371,13 @@ class Slide:
             overflow: Show a scrollbar when the table overflows the cell.
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
 
         Returns:
             TableCell: The newly created and registered table cell.
@@ -395,6 +417,10 @@ class Slide:
         overflow:        bool                       = False,
         copy_button:     bool                       = _UNSET,  # type: ignore[assignment]
         expand_button:   bool                       = _UNSET,  # type: ignore[assignment]
+        transparent:     bool                       = _UNSET,  # type: ignore[assignment]
+        halign:          str                        = _UNSET,  # type: ignore[assignment]
+        valign:          str                        = _UNSET,  # type: ignore[assignment]
+        fontscale:       float                      = _UNSET,  # type: ignore[assignment]
         tabulator_config: dict | None               = None,
         _params: Any                                = None,
     ) -> TabulatorCell:
@@ -478,6 +504,13 @@ class Slide:
                 Defaults to ``False`` (Tabulator scrolls internally).
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
             tabulator_config: Final-pass dict merged after all other options,
                 overriding even ``options``.
 
@@ -519,6 +552,10 @@ class Slide:
         overflow:      bool        = _UNSET,  # type: ignore[assignment]
         copy_button:   bool        = _UNSET,  # type: ignore[assignment]
         expand_button: bool        = _UNSET,  # type: ignore[assignment]
+        transparent:   bool        = _UNSET,  # type: ignore[assignment]
+        halign:        str         = _UNSET,  # type: ignore[assignment]
+        valign:        str         = _UNSET,  # type: ignore[assignment]
+        fontscale:     float       = _UNSET,  # type: ignore[assignment]
         _params: Any               = None,
     ) -> ListCell:
         """Add a bulleted or numbered list to the slide.
@@ -536,6 +573,13 @@ class Slide:
             overflow: Show a scrollbar on the cell instead of clipping.
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
 
         Returns:
             ListCell: The newly created and registered list cell.
@@ -553,9 +597,12 @@ class Slide:
         colspan:       int         = 1,
         rowspan:       int         = 1,
         caption:       str         = "",
-        overflow:      bool        = _UNSET,  # type: ignore[assignment]
         copy_button:   bool        = _UNSET,  # type: ignore[assignment]
         expand_button: bool        = _UNSET,  # type: ignore[assignment]
+        transparent:   bool        = _UNSET,  # type: ignore[assignment]
+        halign:        str         = _UNSET,  # type: ignore[assignment]
+        valign:        str         = _UNSET,  # type: ignore[assignment]
+        fontscale:     float       = _UNSET,  # type: ignore[assignment]
         _params: Any               = None,
     ) -> PlotlyCell:
         """Add an interactive Plotly chart to the slide.
@@ -578,9 +625,15 @@ class Slide:
             colspan: Number of grid columns to span (default ``1``).
             rowspan: Number of grid rows to span (default ``1``).
             caption: Caption text displayed below the chart.
-            overflow: Show a scrollbar on the cell instead of clipping.
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
 
         Returns:
             PlotlyCell: The newly created and registered Plotly chart cell.
@@ -679,6 +732,10 @@ class Slide:
         overflow:      bool        = _UNSET,  # type: ignore[assignment]
         copy_button:   bool        = _UNSET,  # type: ignore[assignment]
         expand_button: bool        = _UNSET,  # type: ignore[assignment]
+        transparent:   bool        = _UNSET,  # type: ignore[assignment]
+        halign:        str         = _UNSET,  # type: ignore[assignment]
+        valign:        str         = _UNSET,  # type: ignore[assignment]
+        fontscale:     float       = _UNSET,  # type: ignore[assignment]
         _params: Any               = None,
     ) -> CodeCell:
         """Add a syntax-highlighted code block to the slide.
@@ -699,6 +756,13 @@ class Slide:
             overflow: Show a scrollbar instead of wrapping long lines.
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
 
         Returns:
             CodeCell: The newly created and registered code cell.
@@ -733,6 +797,10 @@ class Slide:
         overflow:        bool        = _UNSET,  # type: ignore[assignment]
         copy_button:     bool        = _UNSET,  # type: ignore[assignment]
         expand_button:   bool        = _UNSET,  # type: ignore[assignment]
+        transparent:     bool        = _UNSET,  # type: ignore[assignment]
+        halign:          str         = _UNSET,  # type: ignore[assignment]
+        valign:          str         = _UNSET,  # type: ignore[assignment]
+        fontscale:       float       = _UNSET,  # type: ignore[assignment]
         _params: Any                 = None,
     ) -> MetricCell:
         """Add a KPI metric card to the slide.
@@ -772,6 +840,13 @@ class Slide:
             overflow: Show a scrollbar on the cell instead of clipping.
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
 
         Returns:
             MetricCell: The newly created and registered metric cell.
@@ -802,6 +877,10 @@ class Slide:
         overflow:      bool        = _UNSET,  # type: ignore[assignment]
         copy_button:   bool        = _UNSET,  # type: ignore[assignment]
         expand_button: bool        = _UNSET,  # type: ignore[assignment]
+        transparent:   bool        = _UNSET,  # type: ignore[assignment]
+        halign:        str         = _UNSET,  # type: ignore[assignment]
+        valign:        str         = _UNSET,  # type: ignore[assignment]
+        fontscale:     float       = _UNSET,  # type: ignore[assignment]
         _params: Any               = None,
     ) -> MermaidCell:
         """Add a Mermaid diagram to the slide.
@@ -827,6 +906,13 @@ class Slide:
             overflow: Show a scrollbar on the cell instead of clipping.
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
 
         Returns:
             MermaidCell: The newly created and registered diagram cell.
@@ -851,6 +937,10 @@ class Slide:
         overflow:      bool        = _UNSET,  # type: ignore[assignment]
         copy_button:   bool        = _UNSET,  # type: ignore[assignment]
         expand_button: bool        = _UNSET,  # type: ignore[assignment]
+        transparent:   bool        = _UNSET,  # type: ignore[assignment]
+        halign:        str         = _UNSET,  # type: ignore[assignment]
+        valign:        str         = _UNSET,  # type: ignore[assignment]
+        fontscale:     float       = _UNSET,  # type: ignore[assignment]
         _params: Any               = None,
     ) -> HtmlCell:
         """Add a raw HTML cell to the slide.
@@ -869,6 +959,13 @@ class Slide:
             overflow: Show a scrollbar on the cell instead of clipping.
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
 
         Returns:
             HtmlCell: The newly created and registered HTML cell.
@@ -885,9 +982,12 @@ class Slide:
         colspan:       int         = 1,
         rowspan:       int         = 1,
         caption:       str         = "",
-        overflow:      bool        = _UNSET,  # type: ignore[assignment]
         copy_button:   bool        = _UNSET,  # type: ignore[assignment]
         expand_button: bool        = _UNSET,  # type: ignore[assignment]
+        transparent:   bool        = _UNSET,  # type: ignore[assignment]
+        halign:        str         = _UNSET,  # type: ignore[assignment]
+        valign:        str         = _UNSET,  # type: ignore[assignment]
+        fontscale:     float       = _UNSET,  # type: ignore[assignment]
         _params: Any               = None,
     ) -> IframeCell:
         """Embed an external URL in an iframe cell.
@@ -903,9 +1003,15 @@ class Slide:
             colspan: Number of grid columns to span (default ``1``).
             rowspan: Number of grid rows to span (default ``1``).
             caption: Caption text displayed below the iframe.
-            overflow: Show a scrollbar on the cell instead of clipping.
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
 
         Returns:
             IframeCell: The newly created and registered iframe cell.
@@ -964,9 +1070,12 @@ class Slide:
         colspan:       int         = 1,
         rowspan:       int         = 1,
         caption:       str         = "",
-        overflow:      bool        = _UNSET,  # type: ignore[assignment]
         copy_button:   bool        = _UNSET,  # type: ignore[assignment]
         expand_button: bool        = _UNSET,  # type: ignore[assignment]
+        transparent:   bool        = _UNSET,  # type: ignore[assignment]
+        halign:        str         = _UNSET,  # type: ignore[assignment]
+        valign:        str         = _UNSET,  # type: ignore[assignment]
+        fontscale:     float       = _UNSET,  # type: ignore[assignment]
         _params: Any               = None,
     ) -> "ImageSliderCell":
         """Add an image carousel to the slide.
@@ -997,9 +1106,15 @@ class Slide:
             colspan: Number of grid columns to span (default ``1``).
             rowspan: Number of grid rows to span (default ``1``).
             caption: Master caption displayed below the entire slider cell.
-            overflow: Show a scrollbar on the cell instead of clipping.
             copy_button: Show a copy-to-clipboard button on the cell card.
             expand_button: Show a fullscreen-expand button on the cell card.
+            transparent: If ``True``, the cell background is transparent.
+            halign: Horizontal alignment — ``"left"``, ``"center"``,
+                or ``"right"``.
+            valign: Vertical alignment — ``"top"``, ``"middle"``,
+                or ``"bottom"``.
+            fontscale: Multiplier for this cell's text size (default ``1.0``).
+                Composes on top of the deck-wide ``fontsize_scale``.
 
         Returns:
             ImageSliderCell: The newly created and registered slider cell.

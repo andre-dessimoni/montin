@@ -15,7 +15,6 @@ class ImageCell(Cell):
     """
     Image with lightbox (zoom/pan) and thumbnails for all images on the slide.
     Accepts a local path, URL, or base64 string.
-    Effective overflow default: False (image fits the cell).
     """
 
     def __init__(

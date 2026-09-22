@@ -295,12 +295,33 @@ class Cell(ABC):
 # @cell_method — decorator
 # ---------------------------------------------------------------------------
 
+#: Layout/style parameters shared by the ``add_*`` methods, with the neutral
+#: fallback used when a method does not declare the parameter at all.
+#: For parameters a method *does* declare, the default in its signature is the
+#: single source of truth (``_UNSET`` defers to the slide's ``CellDefaults``).
+_COMMON_PARAM_FALLBACKS: dict = {
+    "col":           None,
+    "row":           None,
+    "colspan":       1,
+    "rowspan":       1,
+    "caption":       "",
+    "overflow":      _UNSET,
+    "copy_button":   _UNSET,
+    "expand_button": _UNSET,
+    "transparent":   _UNSET,
+    "halign":        _UNSET,
+    "valign":        _UNSET,
+    "fontscale":     _UNSET,
+}
+
+
 def cell_method(fn: "Callable[_P, _R]") -> "Callable[_P, _R]":
     """
     Decorator applied to all ``add_*`` methods of ``Slide``.
 
     Responsibilities (in order):
-    1. Extract common parameters from **kwargs
+    1. Extract the common layout/style parameters, using each method's own
+       signature as the single source of truth for their defaults
     2. Merge with CellDefaults (replace _UNSET with the global default)
     3. Resolve cell_id and position (col/row) if not provided
     4. Validate col/row within canvas range (1-indexed)
@@ -310,24 +331,44 @@ def cell_method(fn: "Callable[_P, _R]") -> "Callable[_P, _R]":
     8. Register occupied positions on the Slide's internal map
     9. Ensure the return value is a Cell instance
     10. Autosave if Slide.parent.autosave_level == 'cell'
+
+    ``cell_id`` and ``notebook_unique`` are decorator-level extras accepted by
+    every ``add_*`` method (they identify the cell, they don't style it), so
+    they are consumed here without appearing in each signature.
     """
+    import inspect
+
+    # Defaults come from the decorated method's signature — never from a
+    # parallel table here that could drift out of sync with it. A common
+    # parameter absent from the signature is not accepted from callers
+    # (TypeError from fn) and falls back to its neutral value.
+    sig_defaults = {
+        name: param.default
+        for name, param in inspect.signature(fn).parameters.items()
+        if name in _COMMON_PARAM_FALLBACKS
+    }
 
     @functools.wraps(fn)
     def wrapper(slide: "Slide", *args: Any, **kwargs: Any) -> Cell:
-        # --- 1. Extract common parameters ---
-        col      = kwargs.pop("col",      None)
-        row      = kwargs.pop("row",      None)
-        colspan  = kwargs.pop("colspan",  1)
-        rowspan  = kwargs.pop("rowspan",  1)
-        caption  = kwargs.pop("caption",  "")
+        # --- 1. Extract common parameters (signature-driven) ---
+        common = {name: kwargs.pop(name, default)
+                  for name, default in sig_defaults.items()}
+        for name, fallback in _COMMON_PARAM_FALLBACKS.items():
+            common.setdefault(name, fallback)
 
-        overflow      = kwargs.pop("overflow",      _UNSET)
-        copy_button   = kwargs.pop("copy_button",   _UNSET)
-        expand_button = kwargs.pop("expand_button", _UNSET)
-        transparent   = kwargs.pop("transparent",   _UNSET)
-        halign        = kwargs.pop("halign",        _UNSET)
-        valign        = kwargs.pop("valign",        _UNSET)
-        fontscale     = kwargs.pop("fontscale",     _UNSET)
+        col      = common["col"]
+        row      = common["row"]
+        colspan  = common["colspan"]
+        rowspan  = common["rowspan"]
+        caption  = common["caption"]
+
+        overflow      = common["overflow"]
+        copy_button   = common["copy_button"]
+        expand_button = common["expand_button"]
+        transparent   = common["transparent"]
+        halign        = common["halign"]
+        valign        = common["valign"]
+        fontscale     = common["fontscale"]
         cell_id         = kwargs.pop("cell_id",         _UNSET)
         notebook_unique = kwargs.pop("notebook_unique", False)
 
