@@ -5,6 +5,7 @@ declaration, isolated defaults, and preview/write idempotency."""
 import pytest
 
 from montin import CellDefaults, Deck, Plugins, SlideDefaults
+from montin.exceptions import CellPlacementError
 
 
 def _render(deck, **kw):
@@ -103,6 +104,16 @@ def test_plugin_appended_after_init_is_seen():
     slide = deck.add_slide("S")
     deck.plugins.append(Plugins.Mermaid())
     slide.add_mermaid("flowchart LR\n A --> B")   # must not raise
+
+
+# ---------------------------------------------------------------------------
+# Placement: half-specified positions fail early
+# ---------------------------------------------------------------------------
+
+def test_col_without_row_raises(deck):
+    s = deck.add_slide("S", nrows=2, ncols=2)
+    with pytest.raises(CellPlacementError, match="col= was given without row="):
+        s.add_text("x", col=2)
 
 
 # ---------------------------------------------------------------------------

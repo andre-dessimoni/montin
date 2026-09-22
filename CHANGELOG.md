@@ -66,6 +66,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `overflow` was removed from `add_plotly`, `add_iframe` and `add_image_slider`,
   where it had no effect: those cells always clip and their content sizes
   itself.
+- Passing only one of `col=` / `row=` to an `add_*` method now raises
+  `CellPlacementError` instead of silently auto-placing the cell.
 
 ### Fixed
 - `add_tabulator(selectable=…)` and `spreadsheet_mode=True` sent their range
@@ -85,6 +87,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `transparent`, `halign`, `valign` and `fontscale` now appear in the signature
   and docstring of every `add_*` method (they were accepted but invisible to
   editors and type checkers).
+- `Deck.write()` without a filename now works for any title on Windows
+  (characters such as `:`, `/` and `?` are replaced), and `Slide.remove_cell()`
+  reports "No cell found" instead of "No slide found".
 
 ### Security
 - **HTML autoescaping is on by default.** Titles, subtitles, captions, table

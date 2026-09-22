@@ -109,6 +109,15 @@ class Slide:
         """
         if col is not None and row is not None:
             return col, row
+        if col is not None or row is not None:
+            # Half-specified positions used to be silently ignored (full
+            # auto-placement) — a silent layout surprise. Fail early instead.
+            from montin.exceptions import CellPlacementError
+            given, missing = ("col", "row") if col is not None else ("row", "col")
+            raise CellPlacementError(
+                f"{given}= was given without {missing}=. Pass both to place the "
+                f"cell explicitly, or neither to auto-place it."
+            )
 
         # Advance cursor until a free position with enough space is found
         r, c = 1, 1
@@ -168,7 +177,7 @@ class Slide:
             KeyError: If no cell with ``cell_id`` exists on this slide.
         """
         if cell_id not in self._cell_map:
-            raise KeyError(f"No slide found with ID: {cell_id}")
+            raise KeyError(f"No cell found with ID: {cell_id}")
         
         cell = self._cell_map.pop(cell_id)
         self._cells.remove(cell)

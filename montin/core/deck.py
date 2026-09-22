@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import copy
 import datetime
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Hashable, Literal
@@ -76,6 +77,16 @@ class CellDefaults:
     halign:        Literal["left", "center", "right"]      = "left"
     valign:        Literal["top", "middle", "bottom"]      = "top"
     fontscale:     float                                   = 1.0
+
+
+def _safe_filename(title: str) -> str:
+    """Derive a filesystem-safe filename from the deck title.
+
+    Replaces whitespace and the characters Windows forbids in filenames
+    (``<>:"/\\|?*``) with dashes, so ``Deck.write()`` without a filename works
+    for any title on any platform."""
+    name = re.sub(r'[<>:"/\\|?*\s]+', "-", title).strip("-.")
+    return name or "montin-report"
 
 
 # ---------------------------------------------------------------------------
@@ -533,7 +544,7 @@ class Deck:
         if (filename is None) and (self.autosave is not None):
             filename = self.autosave
         elif (filename is None) and (self.autosave is None):
-            filename = self.title.replace(" ", "-")
+            filename = _safe_filename(self.title)
 
         path = Path(filename).with_suffix(".html")
         assembler = Assembler(self, strict=strict)
