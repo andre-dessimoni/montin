@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "montin"
-version = "0.6.0"
+version = "0.7.0"
 description = "Generate self-contained, interactive HTML reports from data in Python"
 readme = "README.md"
 license = "MIT"
